@@ -1,0 +1,44 @@
+---
+import "@picocss/pico/css/pico.min.css";
+import ThemeSwitcher from "./theme-switcher.astro";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="auto">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Astro description" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <nav>
+          <ul>
+            <li><strong>Isidrok</strong></li>
+          </ul>
+          <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/blog">Blog</a></li>
+            <ThemeSwitcher />
+          </ul>
+        </nav>
+      </header>
+      <slot />
+      <footer>
+        <p>© {new Date().getFullYear()} Isidrok. All rights reserved.</p>
+      </footer>
+    </main>
+  </body>
+</html>

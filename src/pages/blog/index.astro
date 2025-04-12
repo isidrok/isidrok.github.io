@@ -1,0 +1,26 @@
+---
+import Layout from "@layout/layout.astro";
+import { getCollection, type CollectionEntry } from "astro:content";
+
+const posts: CollectionEntry<"blog">[] = await getCollection("blog");
+const publishedPosts = posts
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<Layout title="Blog">
+  <h1>Blog Posts</h1>
+  <ul>
+    {
+      publishedPosts.map((post) => (
+        <li>
+          <a href={`/blog/${post.id}`}>{post.data.title}</a>
+          <p>{post.data.description}</p>
+          <time datetime={post.data.date.toISOString()}>
+            {post.data.date.toLocaleDateString()}
+          </time>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
