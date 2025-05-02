@@ -1,0 +1,49 @@
+@use "../util/grid" as *;
+
+body {
+  min-width: 390px;
+}
+
+.grid-columns {
+  display: grid;
+
+  --grid-columns: 4;
+  --grid-gap: 16px;
+
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+
+  @include bp-gt-phone {
+    --grid-columns: 8;
+    --grid-gap: 24px;
+  }
+
+  @include bp-gt-tablet {
+    --grid-columns: 12;
+    --grid-gap: 32px;
+  }
+}
+
+.grid-padding {
+  --grid-padding: 16px;
+
+  padding-inline: var(--grid-padding);
+
+  @include bp-gt-phone {
+    --grid-padding: 24px;
+  }
+
+  @include bp-gt-tablet {
+    --grid-padding: 32px;
+  }
+
+  @include bp-gt-desktop {
+    max-width: 1920px;
+    margin: 0 auto;
+  }
+}
+
+.grid {
+  @extend .grid-columns;
+  @extend .grid-padding;
+}

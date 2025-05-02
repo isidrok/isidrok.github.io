@@ -13,8 +13,6 @@ import pipe from "./assets/pipe.png";
 import pipeBig from "./assets/pipe-big.png";
 import backpressureBig from "./assets/backpressure-big.png";
 
-# Transferring data over the network with Node.js
-
 Any time we want to transfer data to the client, be it an html file or a huge zip archive, it is a good idea to use [Streams](https://nodejs.org/api/stream.html). That way we can start sending data over to the client at the same time it is being generated as opposed to storing the full file in memory and then sending it over the wire. This does not only save resources but also speeds things up for the client.
 
 ## Streams

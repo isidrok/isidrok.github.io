@@ -1,0 +1,55 @@
+html,
+.root {
+  font-size: 18px;
+  line-height: 23px;
+}
+body,
+.article {
+  font-family: sans-serif;
+  font-size: 1rem;
+  line-height: 1.2777778rem;
+}
+h1,
+.h1 {
+  font-size: 1.7222222rem;
+  line-height: 2.5555556rem;
+  margin-top: 1.2777778rem;
+  margin-bottom: 2.5555556rem;
+}
+h2,
+.h2 {
+  font-size: 1.4444444rem;
+  line-height: 2.5555556rem;
+  margin-top: 1.2777778rem;
+  margin-bottom: 1.2777778rem;
+}
+h3,
+.h3 {
+  font-size: 1.2222222rem;
+  line-height: 1.2777778rem;
+  margin-top: 1.2777778rem;
+  margin-bottom: 0rem;
+}
+h4,
+.h4 {
+  font-size: 1rem;
+  line-height: 1.2777778rem;
+  margin-top: 1.2777778rem;
+  margin-bottom: 0rem;
+}
+h5,
+.h5 {
+  font-size: 1rem;
+  line-height: 1.2777778rem;
+  margin-top: 1.2777778rem;
+  margin-bottom: 0rem;
+}
+p,
+ul,
+ol,
+pre,
+table,
+blockquote {
+  margin-top: 0rem;
+  margin-bottom: 1.2777778rem;
+}
