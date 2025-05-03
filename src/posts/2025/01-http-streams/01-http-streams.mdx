@@ -188,7 +188,7 @@ Run that command and you will see how the client is receiving data much after th
 Lets run it with Clinic.js now (if you are using PowerShell quote the two hyphens before node, '--'):
 
 ```bash
-clinic doctor --on-port 'curl --output nul --limit-rate 10M http://localhost:8080' -- node src/02-backpressure.js
+clinic doctor --on-port 'curl --output /dev/null --limit-rate 10M http://localhost:8080' -- node src/02-backpressure.js
 ```
 
 Inspect the memory usage chart and you will notice how the RSS (Resident Set Size), where buffers are stored, grows over 200MB.
