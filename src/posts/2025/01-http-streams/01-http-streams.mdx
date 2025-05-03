@@ -1,6 +1,6 @@
 ---
 title: "HTTP Streams in Node.js"
-description: "Learn how to efficiently transfer data over HTTP using Node.js streams, including handling backpressure, error management, and best practices for memory optimization."
+description: "Learn how to efficiently transfer data over HTTP using Node.js streams, including handling backpressure, error management, and memory optimization best practices."
 date: "2025-04-12"
 slug: "streams"
 repository: "https://github.com/isidrok/streams"
@@ -14,9 +14,15 @@ import pipe from "./assets/pipe.png";
 import pipeBig from "./assets/pipe-big.png";
 import backpressureBig from "./assets/backpressure-big.png";
 
-Any time we want to transfer data to the client, be it an html file or a huge zip archive, it is a good idea to use [Streams](https://nodejs.org/api/stream.html). That way we can start sending data over to the client at the same time it is being generated as opposed to storing the full file in memory and then sending it over the wire. This does not only save resources but also speeds things up for the client.
+When transferring data to clients—whether it's an HTML file or a large ZIP archive—[Streams](https://nodejs.org/api/stream.html) offer significant advantages. By streaming data, we can begin transmission while content is still being generated, rather than waiting to load the entire file into memory. This approach not only conserves server resources but also provides a faster experience for clients.
 
-## Streams
+In this guide, you'll learn:
+- How to implement basic HTTP streaming in Node.js
+- Proper error handling strategies for streams
+- How to manage backpressure effectively
+- Best practices for memory optimization
+
+## Understanding Streams
 
 To illustrate how streams work we can create a simple HTTP server using Node.js [HTTP module](https://nodejs.org/api/http.html):
 
@@ -85,9 +91,9 @@ Extending the previous snippet we can easily create a function that sends data i
 
 In practice there are two caveats.
 
-## Error handling
+## Error Handling
 
-Headers need to be written before the body, so as soon as you do the first write, you cannot change them anymore. Refer to the [structure of an HTTP message](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages#anatomy_of_an_http_message). This means that, if your process fails at a later step, you cannot inform the client by changing the response `Status`.
+Headers must be written before the body—once you perform the first write operation, you cannot modify them. This limitation stems from the [structure of an HTTP message](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages#anatomy_of_an_http_message). As a result, if your process fails after beginning transmission, you cannot inform the client by changing the response `Status`.
 
 This will result in a `ERR_HTTP_HEADERS_SENT` error:
 
@@ -316,20 +322,21 @@ From 1.5GB+ to maybe 400MB peaks? Pretty good.
 
 ## Key Takeaways
 
-- Use streams in order to reduce memory usage and improve response time.
-- Think about error handling in the context of your product.
-- Use `pipe()` whenever possible.
-- If writing custom readable streams try using generators.
-- Monitor your application with tools such as Clinic.js.
-- Backpressure is not always appreciable, maybe your consumer is faster than your generator, but can we guarantee thats going to be the case 100% of the time?
-- Sometimes we don't want to handle backpressure, and instead let slow clients drop packages. Refer to this [leaky stream implementation](https://ey3ball.github.io/posts/2014/07/17/node-streams-back-pressure/).
-- You can configure internal [stream buffer size](https://nodejs.org/api/stream.html#buffering) using the `highWaterMark` parameter when creating a stream or when creating the server.
-- If you are generating data using a third party readable stream and notice a high memory consumption in your application, check if it is properly handling backpressure.
-- Sometimes you may not be able to pause your data source. Think about different approaches. Can you request less data at a time, for example by using [`Range requests`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Range_requests)?
+* **Use streams wisely**: Implement streams to reduce memory usage and improve response time
+* **Plan for errors**: Design error handling strategies appropriate for your use case
+* **Prefer `pipe()`**: Use the `pipe()` method whenever possible for automatic backpressure handling
+* **Consider generators**: When writing custom readable streams, leverage generators for cleaner code
+* **Monitor performance**: Use tools like Clinic.js to track your application's behavior
+* **Test edge cases**: Remember that backpressure isn't always immediately apparent—test with slow clients
+* **Configure buffers**: Adjust internal [stream buffer size](https://nodejs.org/api/stream.html#buffering) using `highWaterMark` when needed
+* **Verify third-party streams**: When using external readable streams, ensure they handle backpressure properly
+* **Consider alternatives**: For non-pausable data sources, explore options like [`Range requests`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Range_requests)
 
-## Extra: can I pause HTTP requests?
+Sometimes we don't want to handle backpressure, and instead let slow clients drop packages. For an example implementation, see this [leaky stream implementation](https://ey3ball.github.io/posts/2014/07/17/node-streams-back-pressure/).
 
-Yes! you can call `pause()` and `resume()` on the response body stream:
+## Extra: Can I Pause HTTP Requests?
+
+Yes! You can call `pause()` and `resume()` on the response body stream:
 
 ```js
 // src/06-fetch.js
@@ -350,7 +357,7 @@ fetch("http://localhost:8080").then((response) => {
 });
 ```
 
-You can use this to analyze how your server reacts in different scenarios. Open two terminals and run the following commands:
+To analyze how the server reacts in different scenarios, open two terminals and run:
 
 ```bash
 clinic doctor -- node .\src\05-pipe.js
@@ -360,4 +367,4 @@ clinic doctor -- node .\src\05-pipe.js
 clinic doctor -- node .\src\06-fetch.js
 ```
 
-You will notice how our server is not generating chunks while the client is paused. I suspect this works because [TCP/IP has mechanisms to handle backpressure](https://sumofbytes.com/blog/understanding-tcp-protocol-and-backpressure) but use at your own risk!
+You'll observe that the server stops generating chunks while the client is paused. This behavior likely works because [TCP/IP has built-in mechanisms to handle backpressure](https://sumofbytes.com/blog/understanding-tcp-protocol-and-backpressure)—but use at your own risk!
