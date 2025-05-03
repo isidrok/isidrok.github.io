@@ -2,7 +2,7 @@
 import Layout from "@layout/layout.astro";
 import { getCollection } from "astro:content";
 import PostCard from "@components/post-card.astro";
-
+import Separator from "@components/separator.astro";
 const posts = await getCollection("blog");
 const latestPosts = posts
   .filter((post) => !post.data.draft)
@@ -11,18 +11,19 @@ const latestPosts = posts
 ---
 
 <Layout title="Home">
-  <article>
-    <header class="hero">
+  <article class="container">
+    <header class="intro">
       <h1>Hi, I'm Isidro Torregrosa</h1>
       <p class="description">
         Technical Lead & Senior Full-Stack Engineer passionate about JavaScript,
         web development and Node.js.
       </p>
+      <Separator />
     </header>
 
-    <section class="latest-posts">
+    <section>
       <h2>Latest Articles</h2>
-      <ol>
+      <ol role="list">
         {
           latestPosts.map((post) => (
             <li>
@@ -41,45 +42,7 @@ const latestPosts = posts
 </Layout>
 
 <style lang="scss">
-  article {
-    max-width: 65ch;
-    margin-inline: auto;
-  }
-
-  header {
-    margin-bottom: 3rem;
+  .intro {
     text-align: center;
-
-    h1 {
-      font-size: 2.5rem;
-      line-height: 1.2;
-      margin-block: 0.5rem 1rem;
-      color: var(--color-fg-primary);
-    }
-
-    .description {
-      font-size: 1.125rem;
-      line-height: 1.5;
-      color: var(--color-fg-secondary);
-      margin: 0;
-    }
-  }
-
-  .latest-posts {
-    h2 {
-      font-size: 1.75rem;
-      line-height: 1.3;
-      margin-block: 2rem 1rem;
-      color: var(--color-fg-primary);
-      text-align: center;
-    }
-
-    ol {
-      display: grid;
-      gap: 2rem;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
   }
 </style>
