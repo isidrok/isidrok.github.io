@@ -3,20 +3,45 @@ import Layout from "@layout/layout.astro";
 import { getCollection } from "astro:content";
 import PostCard from "@components/post-card.astro";
 import Separator from "@components/separator.astro";
+import TypewriterText, {
+  calculateAnimationDuration,
+} from "@components/typewriter-text.astro";
+
 const posts = await getCollection("blog");
 const latestPosts = posts
   .filter((post) => !post.data.draft)
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
   .slice(0, 5);
+const title = "Hi, I'm Isidro Torregrosa";
+const titleSpeed = 35;
+const titleStartDelay = 400;
+const subtitle =
+  "Technical Lead & Senior Full-Stack Engineer passionate about JavaScript, web development and Node.js.";
+const subtitleSpeed = 35;
+const titleDuration = calculateAnimationDuration(
+  title,
+  titleSpeed,
+  titleStartDelay
+);
+const subtitleStartDelay = titleDuration + 200;
 ---
 
 <Layout title="Home">
   <article class="container">
     <header class="intro">
-      <h1>Hi, I'm Isidro Torregrosa</h1>
+      <h1>
+        <TypewriterText
+          text={title}
+          speed={titleSpeed}
+          startDelay={titleStartDelay}
+        />
+      </h1>
       <p class="description">
-        Technical Lead & Senior Full-Stack Engineer passionate about JavaScript,
-        web development and Node.js.
+        <TypewriterText
+          text={subtitle}
+          speed={subtitleSpeed}
+          startDelay={subtitleStartDelay}
+        />
       </p>
       <Separator />
     </header>

@@ -42,6 +42,7 @@ body {
   font-family: ui-monospace, monospace;
   letter-spacing: -0.01em;
   line-height: 1.7;
+  margin: 0;
   min-width: 390px;
   color: var(--color-fg-primary);
   background-color: var(--color-surface-primary);
@@ -88,6 +89,17 @@ a {
   padding-inline: 1rem;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 // Typography
 h1,
 h2,

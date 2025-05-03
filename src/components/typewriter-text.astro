@@ -1,0 +1,97 @@
+---
+interface Props {
+  text: string;
+  speed?: number;
+  startDelay?: number;
+}
+
+const { text, speed = 100, startDelay = 200 } = Astro.props;
+
+// Calculate total animation duration for a given text
+export function calculateAnimationDuration(
+  text: string,
+  speed = 100,
+  startDelay = 200
+) {
+  const totalChars = text.split("").length;
+  return startDelay + totalChars * speed;
+}
+
+// Split into words and then characters, tracking the total character count
+let totalChars = 0;
+const words = text.split(" ").map((word) => {
+  const chars = word.split("").map((char, i) => ({
+    char,
+    index: totalChars + i,
+  }));
+  totalChars += chars.length + 1; // +1 for the space
+  return chars;
+});
+
+// Calculate the total animation duration for this instance
+const totalDuration = calculateAnimationDuration(text, speed, startDelay);
+---
+
+<span>
+  <span
+    class="typewriter"
+    role="presentation"
+    style={`--typing-speed: ${speed}ms; --start-delay: ${startDelay}ms; --total-chars: ${totalChars};`}
+  >
+    <span class="text">
+      {
+        words.map((word) => (
+          <>
+            <span class="word">
+              {word.map(({ char, index }) => (
+                <span
+                  class="char"
+                  style={`--char-index: ${index};`}
+                  aria-hidden="true"
+                >
+                  {char}
+                </span>
+              ))}
+            </span>{" "}
+          </>
+        ))
+      }
+    </span>
+  </span>
+  <span class="sr-only" aria-live="polite">{text}</span>
+</span>
+
+<style>
+  .word {
+    white-space: nowrap;
+  }
+
+  .char {
+    display: inline-block;
+    opacity: 0;
+    animation: type-in 0.08s forwards;
+    animation-delay: calc(
+      var(--start-delay) + var(--char-index) * var(--typing-speed)
+    );
+    will-change: opacity, transform;
+  }
+
+  @keyframes type-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .char {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+  }
+</style>
