@@ -5,15 +5,23 @@ import Header from "./header.astro";
 
 interface Props {
   title: string;
+  description?: string;
+  type?: "website" | "article";
+  canonicalURL?: string;
 }
 
-const { title } = Astro.props;
+const { title, description, type, canonicalURL } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
-    <Head title={title} />
+    <Head
+      title={title}
+      description={description}
+      type={type}
+      canonicalURL={canonicalURL}
+    />
   </head>
   <body>
     <Header />

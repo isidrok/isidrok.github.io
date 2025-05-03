@@ -1,16 +1,77 @@
 ---
 interface Props {
   title: string;
+  description?: string;
+  canonicalURL?: string;
+  type?: "website" | "article";
 }
 
-const { title } = Astro.props;
+const {
+  title,
+  description = "Isidro's personal blog about web development, software engineering, and technology",
+  canonicalURL = Astro.url.href,
+  type = "website",
+} = Astro.props;
+
+const ogImage = new URL("/og-image.svg", Astro.url.origin).href;
 ---
 
+<!-- Essential Meta Tags -->
 <meta charset="UTF-8" />
-<meta name="description" content="Astro description" />
-<meta name="viewport" content="width=device-width" />
-<link rel="sitemap" href="/sitemap-index.xml" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content={description} />
+
+<!-- Canonical URL -->
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+<!-- Sitemap -->
+<link rel="sitemap" href="/sitemap-index.xml" />
+
+<!-- Generator -->
 <meta name="generator" content={Astro.generator} />
+
+<!-- Title -->
 <title>{title}</title>
 
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={Astro.url.href} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:site_name" content="Isidro's Blog" />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={Astro.url.href} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={ogImage} />
+
+<!-- JSON-LD Structured Data -->
+<script
+  type="application/ld+json"
+  set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": type === "article" ? "BlogPosting" : "WebSite",
+    url: Astro.url.href,
+    name: title,
+    description: description,
+    image: ogImage,
+    ...(type === "article" && {
+      author: {
+        "@type": "Person",
+        name: "Isidro",
+      },
+      publisher: {
+        "@type": "Person",
+        name: "Isidro",
+      },
+    }),
+  })}
+/>

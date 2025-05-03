@@ -18,9 +18,17 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+
+// Construct canonical URL using site's base URL and post ID
+const canonicalURL = new URL(`/blog/${post.id}`, Astro.site).href;
 ---
 
-<Layout title={post.data.title}>
+<Layout
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  canonicalURL={canonicalURL}
+>
   <article>
     <header class="intro">
       <time datetime={post.data.date.toISOString()}>

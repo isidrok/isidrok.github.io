@@ -3,12 +3,12 @@
   // Base colors - simplified for a paper-like aesthetic
   --color-paper: #f8f7f3;
   --color-ink: #222222;
-  --color-ink-light: #555555;
-  --color-ink-lighter: #777777;
-  --color-link: #1a4a28;
+  --color-ink-light: #444444;
+  --color-ink-lighter: #666666;
+  --color-link: #0b4219;
   --color-link-visited: #133524;
-  --color-selection-bg: #2f302d;
-  --color-selection-text: #50fa7b;
+  --color-selection-bg: #0d1c0d; // Dark matrix-like background
+  --color-selection-text: #50fa7b; // Softer matrix green, inspired by Dracula theme
 
   // Semantic colors
   --color-fg-primary: var(--color-ink);
@@ -19,8 +19,8 @@
   --color-surface-secondary: #f3f2ee;
   --color-surface-tertiary: #efeee9;
 
-  --color-border: #ddd8cc;
-  --color-shadow: rgb(0 0 0 / 0.05);
+  --color-border: #bdb7ac;
+  --color-shadow: rgb(0 0 0 / 0.1);
 
   --color-accent-primary: var(--color-link);
   --color-accent-secondary: var(--color-link-visited);
