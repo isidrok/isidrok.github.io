@@ -2,55 +2,114 @@
 
 ---
 
-<header>
-  <div class="links container">
-    <a href="/" class="home">~/isidrok</a>
-    <div class="social">
-      <a
-        href="https://linkedin.com/in/itorregrosa"
-        class="social-link"
-        target="_blank"
-        rel="noopener noreferrer">LinkedIn</a
-      >
-      <a
-        href="https://github.com/isidrok"
-        class="social-link"
-        target="_blank"
-        rel="noopener noreferrer">Github</a
-      >
-    </div>
+<header class="header">
+  <div class="container">
+    <nav>
+      <a href="/" class="logo">~/isidrok</a>
+      <div class="social">
+        <a
+          href="https://linkedin.com/in/itorregrosa"
+          class="social-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          LinkedIn
+        </a>
+        <a
+          href="https://github.com/isidrok"
+          class="social-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Github
+        </a>
+      </div>
+    </nav>
   </div>
 </header>
 
-<style lang="scss">
-  header {
-    padding-block: 1rem;
-    border-bottom: 1px solid var(--color-border);
-    margin-bottom: 1rem;
+<script>
+  let lastScrollY = window.scrollY;
+  const header = document.querySelector(".header");
+
+  // Throttle function to limit scroll event handling
+  function throttle(func: Function, limit: number) {
+    let inThrottle: boolean;
+    return function (this: any, ...args: any[]) {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => (inThrottle = false), limit);
+      }
+    };
   }
 
-  .links {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+  // Handle scroll events
+  const handleScroll = throttle(() => {
+    const currentScrollY = window.scrollY;
 
-  .home {
-    font-weight: 500;
-    font-size: 1rem;
-    text-decoration: none;
-    color: var(--color-fg-primary);
-
-    &:hover {
-      text-decoration: underline;
+    // Show header when scrolling up or at top
+    if (currentScrollY < lastScrollY || currentScrollY < 50) {
+      header?.classList.remove("header--hidden");
+    } else {
+      header?.classList.add("header--hidden");
     }
-  }
 
-  .social {
-    display: flex;
-    gap: 1.25rem;
-    font-size: 0.9rem;
-    a {
+    lastScrollY = currentScrollY;
+  }, 150); // Throttle to run at most every 150ms
+
+  window.addEventListener("scroll", handleScroll, { passive: true });
+</script>
+
+<style lang="scss">
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4rem;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+
+    &--hidden {
+      transform: translateY(-100%);
+    }
+
+    .container {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+    }
+
+    nav {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--color-fg-primary);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .social {
+      display: flex;
+      gap: 1.25rem;
+      font-size: 0.9rem;
+    }
+
+    .social-link {
       color: var(--color-fg-secondary);
       text-decoration: none;
 
@@ -58,6 +117,12 @@
         text-decoration: underline;
         color: var(--color-fg-primary);
       }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .header {
+      transition: none;
     }
   }
 </style>

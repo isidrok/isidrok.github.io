@@ -5,10 +5,8 @@
   --color-ink: #222222;
   --color-ink-light: #444444;
   --color-ink-lighter: #666666;
-  --color-link: #0b4219;
-  --color-link-visited: #133524;
   --color-selection-bg: #0d1c0d; // Dark matrix-like background
-  --color-selection-text: #50fa7b; // Softer matrix green, inspired by Dracula theme
+  --color-selection-text: #39b85c; // Darker matrix green
 
   // Semantic colors
   --color-fg-primary: var(--color-ink);
@@ -22,8 +20,8 @@
   --color-border: #bdb7ac;
   --color-shadow: rgb(0 0 0 / 0.1);
 
-  --color-accent-primary: var(--color-link);
-  --color-accent-secondary: var(--color-link-visited);
+  --color-accent-primary: var(--color-ink); // Changed to black
+  --color-accent-secondary: var(--color-ink-light); // Changed to dark gray
 }
 
 // Reset
