@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://isidrok.com/sitemap-index.xml
+Sitemap: https://isidrok.github.io/sitemap-index.xml
 Crawl-delay: 10
