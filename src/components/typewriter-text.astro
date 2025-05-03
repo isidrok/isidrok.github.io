@@ -7,16 +7,6 @@ interface Props {
 
 const { text, speed = 100, startDelay = 200 } = Astro.props;
 
-// Calculate total animation duration for a given text
-export function calculateAnimationDuration(
-  text: string,
-  speed = 100,
-  startDelay = 200
-) {
-  const totalChars = text.split("").length;
-  return startDelay + totalChars * speed;
-}
-
 // Split into words and then characters, tracking the total character count
 let totalChars = 0;
 const words = text.split(" ").map((word) => {
@@ -27,9 +17,6 @@ const words = text.split(" ").map((word) => {
   totalChars += chars.length + 1; // +1 for the space
   return chars;
 });
-
-// Calculate the total animation duration for this instance
-const totalDuration = calculateAnimationDuration(text, speed, startDelay);
 ---
 
 <span>
@@ -62,6 +49,10 @@ const totalDuration = calculateAnimationDuration(text, speed, startDelay);
 </span>
 
 <style>
+  .typewriter {
+    user-select: none;
+  }
+
   .word {
     white-space: nowrap;
   }

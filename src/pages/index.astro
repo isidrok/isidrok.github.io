@@ -3,9 +3,8 @@ import Layout from "@layout/layout.astro";
 import { getCollection } from "astro:content";
 import PostCard from "@components/post-card.astro";
 import Separator from "@components/separator.astro";
-import TypewriterText, {
-  calculateAnimationDuration,
-} from "@components/typewriter-text.astro";
+import TypewriterText from "@components/typewriter-text.astro";
+import { calculateAnimationDuration } from "@utils/animation";
 
 const posts = await getCollection("blog");
 const latestPosts = posts
@@ -17,7 +16,7 @@ const titleSpeed = 35;
 const titleStartDelay = 400;
 const subtitle =
   "Technical Lead & Senior Full-Stack Engineer passionate about JavaScript, web development and Node.js.";
-const subtitleSpeed = 35;
+const subtitleSpeed = 15;
 const titleDuration = calculateAnimationDuration(
   title,
   titleSpeed,
@@ -47,7 +46,10 @@ const subtitleStartDelay = titleDuration + 200;
     </header>
 
     <section>
-      <h2>Latest Articles</h2>
+      <h2>
+        <span class="command" aria-hidden="true">&gt; ls -t ./posts</span>
+        <span class="sr-only">Latest posts</span>
+      </h2>
       <ol role="list">
         {
           latestPosts.map((post) => (

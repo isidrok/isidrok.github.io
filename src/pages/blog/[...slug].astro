@@ -44,6 +44,19 @@ const canonicalURL = new URL(`/blog/${post.id}`, Astro.site).href;
       </time>
       <h1>{post.data.title}</h1>
       <p class="description">{post.data.description}</p>
+      {
+        post.data.repository && (
+          <p class="repository">
+            <a
+              href={post.data.repository}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View source code
+            </a>
+          </p>
+        )
+      }
       <Separator />
     </header>
     <div>
@@ -55,5 +68,21 @@ const canonicalURL = new URL(`/blog/${post.id}`, Astro.site).href;
 <style lang="scss">
   .intro {
     text-align: center;
+
+    .repository {
+      font-size: 0.9rem;
+      color: var(--color-fg-secondary);
+      margin-block: 1rem;
+
+      a {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+
+        &:hover {
+          color: var(--color-fg-primary);
+        }
+      }
+    }
   }
 </style>

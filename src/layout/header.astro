@@ -21,7 +21,7 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          Github
+          GitHub
         </a>
       </div>
     </nav>
@@ -29,20 +29,10 @@
 </header>
 
 <script>
+  import { throttle } from "@utils/throttle";
+
   let lastScrollY = window.scrollY;
   const header = document.querySelector(".header");
-
-  // Throttle function to limit scroll event handling
-  function throttle(func: Function, limit: number) {
-    let inThrottle: boolean;
-    return function (this: any, ...args: any[]) {
-      if (!inThrottle) {
-        func.apply(this, args);
-        inThrottle = true;
-        setTimeout(() => (inThrottle = false), limit);
-      }
-    };
-  }
 
   // Handle scroll events
   const handleScroll = throttle(() => {

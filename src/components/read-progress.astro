@@ -10,6 +10,7 @@
 </div>
 
 <script>
+  import { throttle } from "@utils/throttle";
   const progressBar = document.querySelector(".read-progress-bar");
   const progressContainer = document.querySelector(".read-progress");
   const header = document.querySelector(".header");
@@ -34,18 +35,6 @@
     // Check if header is hidden
     const isHeaderHidden = header?.classList.contains("header--hidden");
     progressContainer.style.top = isHeaderHidden ? "0" : "4rem";
-  }
-
-  // Update on scroll with throttling for performance
-  function throttle(func: Function, limit: number) {
-    let inThrottle: boolean;
-    return function (this: any, ...args: any[]) {
-      if (!inThrottle) {
-        func.apply(this, args);
-        inThrottle = true;
-        requestAnimationFrame(() => (inThrottle = false));
-      }
-    };
   }
 
   const throttledUpdate = throttle(() => {

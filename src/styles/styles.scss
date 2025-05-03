@@ -27,6 +27,8 @@
 // Reset
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-fg-tertiary) transparent;
 }
 
 html {
@@ -218,31 +220,19 @@ blockquote {
 
 // Scrollbar
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-surface-secondary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-ink-lighter);
-  border-radius: 0;
+  background: var(--color-fg-tertiary);
+  border-radius: 3px;
 
   &:hover {
-    background: var(--color-ink-light);
-  }
-}
-
-// Reduced motion
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+    background: var(--color-fg-secondary);
   }
 }
