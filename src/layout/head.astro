@@ -1,17 +1,12 @@
 ---
 interface Props {
   title: string;
-  description?: string;
-  canonicalURL?: string;
-  type?: "website" | "article";
+  description: string;
+  canonicalURL: string;
+  type: "website" | "article";
 }
 
-const {
-  title,
-  description = "Isidro's personal blog about web development, software engineering, and technology",
-  canonicalURL = Astro.url.href,
-  type = "website",
-} = Astro.props;
+const { title, description, canonicalURL, type } = Astro.props;
 
 const ogImage = new URL("/og-image.svg", Astro.url.origin).href;
 ---

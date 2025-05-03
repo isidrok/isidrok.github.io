@@ -14,8 +14,8 @@
         y="45%" 
         text-anchor="middle" 
         dominant-baseline="central"
-        style="font-family: monospace; font-size: 400px; font-weight: bold;">
-        I
+        style="font-family: ui-monospace, monospace; font-size: 96px; font-weight: bold;">
+        ~/isidrok
     </text>
     <!-- Subtitle -->
     <text 
@@ -24,7 +24,7 @@
         y="85%" 
         text-anchor="middle" 
         dominant-baseline="central"
-        style="font-family: 'Courier New', monospace; font-size: 48px;">
-        isidrok.github.io
+        style="font-family: ui-monospace, monospace; font-size: 48px; font-weight: bold;">
+        https://isidrok.github.io
     </text>
 </svg> 

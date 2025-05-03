@@ -25,7 +25,12 @@ const titleDuration = calculateAnimationDuration(
 const subtitleStartDelay = titleDuration + 200;
 ---
 
-<Layout title="Home">
+<Layout
+  title="~/isidrok"
+  description="Isidro's personal blog about web development, software engineering, and technology"
+  type="website"
+  canonicalURL={Astro.url.href}
+>
   <article class="container">
     <header class="intro">
       <h1>

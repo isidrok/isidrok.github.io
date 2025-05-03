@@ -5,9 +5,9 @@ import Header from "./header.astro";
 
 interface Props {
   title: string;
-  description?: string;
-  type?: "website" | "article";
-  canonicalURL?: string;
+  description: string;
+  type: "website" | "article";
+  canonicalURL: string;
 }
 
 const { title, description, type, canonicalURL } = Astro.props;
