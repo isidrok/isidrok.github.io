@@ -7,8 +7,8 @@
  */
 export function calculateAnimationDuration(
   text: string,
-  speed = 100,
-  startDelay = 200
+  speed: number,
+  startDelay: number
 ): number {
   const totalChars = text.split("").length;
   return startDelay + totalChars * speed;

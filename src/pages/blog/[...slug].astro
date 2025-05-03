@@ -1,7 +1,6 @@
 ---
 import Layout from "@layout/layout.astro";
 import Separator from "@components/separator.astro";
-import ReadProgress from "@components/read-progress.astro";
 import { getCollection, render } from "astro:content";
 import type { CollectionEntry } from "astro:content";
 
@@ -30,7 +29,6 @@ const canonicalURL = new URL(`/blog/${post.id}`, Astro.site).href;
   type="article"
   canonicalURL={canonicalURL}
 >
-  <ReadProgress />
   <article>
     <header class="intro">
       <time datetime={post.data.date.toISOString()}>
@@ -68,6 +66,7 @@ const canonicalURL = new URL(`/blog/${post.id}`, Astro.site).href;
 <style lang="scss">
   .intro {
     text-align: center;
+    padding-top: 2rem;
 
     .repository {
       font-size: 0.9rem;

@@ -1,79 +1,113 @@
 ---
+interface Props {
+  isArticle?: boolean;
+}
 
+const { isArticle = false } = Astro.props;
 ---
 
-<header class="header">
-  <div class="container">
-    <nav>
-      <a href="/" class="logo">~/isidrok</a>
-      <div class="social">
-        <a
-          href="https://linkedin.com/in/itorregrosa"
-          class="social-link"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          LinkedIn
-        </a>
-        <a
-          href="https://github.com/isidrok"
-          class="social-link"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          GitHub
-        </a>
-      </div>
-    </nav>
+<>
+  <header class:list={["header", { "header--article": isArticle }]}>
+    <div class="container">
+      <nav>
+        <a href="/" class="logo">~/isidrok</a>
+        <div class="social">
+          <a
+            href="https://linkedin.com/in/itorregrosa"
+            target="_blank"
+            rel="noopener noreferrer">LinkedIn</a
+          >
+          <a
+            href="https://github.com/isidrok"
+            target="_blank"
+            rel="noopener noreferrer">GitHub</a
+          >
+        </div>
+      </nav>
+    </div>
+  </header>
+  <div class:list={["progress", { "progress--article": isArticle }]}>
+    {
+      isArticle && (
+        <div
+          class="progress-bar"
+          role="progressbar"
+          aria-valuenow="0"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        />
+      )
+    }
   </div>
-</header>
+</>
 
 <script>
   import { throttle } from "@utils/throttle";
 
-  let lastScrollY = window.scrollY;
   const header = document.querySelector(".header");
+  const progress = document.querySelector(".progress");
+  const progressBar = document.querySelector<HTMLElement>(".progress-bar");
+  const isArticle = header?.classList.contains("header--article");
+  let lastScrollY = window.scrollY;
 
-  // Handle scroll events
-  const handleScroll = throttle(() => {
+  function updateReadProgress() {
+    if (!progressBar) return;
+
+    const docElement = document.documentElement;
+    const totalHeight = docElement.scrollHeight - docElement.clientHeight;
+    const progressValue = (window.scrollY / totalHeight) * 100;
+
+    progressBar.style.width = `${progressValue}%`;
+    progressBar.setAttribute(
+      "aria-valuenow",
+      Math.round(progressValue).toString()
+    );
+  }
+
+  function handleScroll() {
+    if (!isArticle) return;
+
     const currentScrollY = window.scrollY;
+    const shouldHide = currentScrollY > lastScrollY && currentScrollY > 50;
 
-    // Show header when scrolling up or at top
-    if (currentScrollY < lastScrollY || currentScrollY < 50) {
-      header?.classList.remove("header--hidden");
-    } else {
-      header?.classList.add("header--hidden");
-    }
-
+    header?.classList.toggle("header--hidden", shouldHide);
+    progress?.classList.toggle("progress--top", shouldHide);
     lastScrollY = currentScrollY;
-  }, 150); // Throttle to run at most every 150ms
+    updateReadProgress();
+  }
 
-  window.addEventListener("scroll", handleScroll, { passive: true });
+  window.addEventListener("scroll", throttle(handleScroll, 16), {
+    passive: true,
+  });
+  window.addEventListener("resize", updateReadProgress, { passive: true });
+  updateReadProgress();
 </script>
 
 <style lang="scss">
   .header {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     height: 4rem;
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 100;
-    transform: translateY(0);
-    transition: transform 0.3s ease;
 
-    &--hidden {
-      transform: translateY(-100%);
+    &--article {
+      position: fixed;
+      inset-inline: 0;
+      transition: transform 0.3s ease;
+
+      &.header--hidden {
+        transform: translateY(-100%);
+      }
     }
 
     .container {
       height: 100%;
       display: flex;
       align-items: center;
-      padding: 0 1rem;
+      padding-inline: 1rem;
     }
 
     nav {
@@ -97,21 +131,50 @@
       display: flex;
       gap: 1.25rem;
       font-size: 0.9rem;
-    }
 
-    .social-link {
-      color: var(--color-fg-secondary);
-      text-decoration: none;
+      a {
+        color: var(--color-fg-secondary);
+        text-decoration: none;
 
-      &:hover {
-        text-decoration: underline;
-        color: var(--color-fg-primary);
+        &:hover {
+          text-decoration: underline;
+          color: var(--color-fg-primary);
+        }
       }
     }
   }
 
+  .progress {
+    position: sticky;
+    top: 4rem;
+    height: 2px;
+    background: var(--color-fg-tertiary);
+    z-index: 200;
+
+    &--article {
+      position: fixed;
+      inset-inline: 0;
+      background: var(--color-selection-bg);
+      transition: top 0.3s ease;
+
+      &.progress--top {
+        top: 0;
+      }
+    }
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0;
+    background: var(--color-selection-text);
+    box-shadow: 0 0 3px var(--color-selection-text);
+    transition: width 50ms ease-out;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .header {
+    .header--article,
+    .progress--article,
+    .progress-bar {
       transition: none;
     }
   }

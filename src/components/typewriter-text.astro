@@ -1,11 +1,11 @@
 ---
 interface Props {
   text: string;
-  speed?: number;
-  startDelay?: number;
+  speed: number;
+  startDelay: number;
 }
 
-const { text, speed = 100, startDelay = 200 } = Astro.props;
+const { text, speed, startDelay } = Astro.props;
 
 // Split into words and then characters, tracking the total character count
 let totalChars = 0;
