@@ -6,7 +6,7 @@ import mdx from "@astrojs/mdx";
 // https://astro.build/config
 export default defineConfig({
   site: "https://isidrok.com",
-  trailingSlash: "never",
+  trailingSlash: "always",
   integrations: [
     mdx(),
     sitemap({
