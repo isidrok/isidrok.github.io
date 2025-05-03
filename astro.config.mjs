@@ -5,7 +5,7 @@ import mdx from "@astrojs/mdx";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://isidrok.com",
+  site: "https://isidrok.github.io",
   trailingSlash: "always",
   integrations: [
     mdx(),
