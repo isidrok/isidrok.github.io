@@ -91,6 +91,7 @@ Having this in mind, let's use TensorFlow to create a tensor from an image and h
 import {
   loadGraphModel,
   browser as tfBrowser,
+  dispose,
   type Tensor3D,
 } from "@tensorflow/tfjs";
 
@@ -141,7 +142,6 @@ function processImage(image: HTMLImageElement, model: GraphModel) {
     .toFloat()
     .div(255)
     .resizeBilinear([modelHeight, modelWidth]);
-  dispose([imageTensor]);
   return processedImage;
 }
 ```
@@ -197,7 +197,7 @@ To make sense of the output we are going to:
 4. Return the data for the best detection, which includes the box coordinates and the keypoints.
 
 ```ts
-async function getBestPrediction(predictions: Tensor3D): Promise<{
+function getBestPrediction(predictions: Tensor3D): Promise<{
   box: [number, number, number, number];
   score: number;
   keypoints: [number, number, number][];
@@ -225,7 +225,7 @@ async function getBestPrediction(predictions: Tensor3D): Promise<{
   const allKeypoints = slice(reshapedPredictions, [0, 0, 5], [-1, -1, -1]); // All remaining 51 values (17 keypts × 3)
 
   // Find the prediction with highest confidence
-  const scoresArray = await confidenceScores.data();
+  const scoresArray = confidenceScores.dataSync();
   const bestPredictionIndex = scoresArray.indexOf(Math.max(...scoresArray));
   const bestConfidence = scoresArray[bestPredictionIndex];
 
@@ -248,7 +248,7 @@ async function getBestPrediction(predictions: Tensor3D): Promise<{
   );
 
   // Convert keypoints tensor to array and group into [x, y, confidence] triplets
-  const keypointsData = [...(await bestKeypointsTensor.data())];
+  const keypointsData = [...bestKeypointsTensor.dataSync()];
   const formattedKeypoints: [number, number, number][] = [];
 
   for (let i = 0; i < keypointsData.length; i += 3) {
@@ -257,31 +257,12 @@ async function getBestPrediction(predictions: Tensor3D): Promise<{
     const confidence = keypointsData[i + 2];
     formattedKeypoints.push([x, y, confidence]);
   }
-  const boxData = [...(await bestBoundingBox.data())] as [
+  const boxData = [...bestBoundingBox.dataSync()] as [
     number,
     number,
     number,
     number
   ];
-
-  // Clean up tensors to prevent memory leaks
-  dispose([
-    reshapedPredictions,
-    centerX,
-    centerY,
-    width,
-    height,
-    halfWidth,
-    halfHeight,
-    x1,
-    y1,
-    x2,
-    y2,
-    confidenceScores,
-    allKeypoints,
-    bestBoundingBox,
-    bestKeypointsTensor,
-  ]);
 
   return {
     box: boxData,
@@ -344,7 +325,7 @@ async function main() {
   const [modelHeight, modelWidth] = modelShape.slice(1, 3);
   const processedImage = processImage(image, model);
   const predictions = model.predict(processedImage) as Tensor3D;
-  const bestPrediction = await getBestPrediction(predictions);
+  const bestPrediction = getBestPrediction(predictions);
 
   renderPrediction({
     canvas,
@@ -355,7 +336,6 @@ async function main() {
     width: modelWidth,
     height: modelHeight,
   });
-  dispose([processedImage, predictions]);
 }
 main();
 ```
@@ -439,9 +419,6 @@ function processImageWithLetterboxing(
 
   // Step 4: Add batch dimension for model input [1, height, width, channels]
   const batchedImage = resizedImage.expandDims(0);
-
-  // Clean up intermediate tensors
-  dispose([originalImageTensor, letterboxedImage, resizedImage]);
 
   return batchedImage;
 }
@@ -558,7 +535,7 @@ async function main() {
     model
   );
   const predictions = model.predict(processedImage) as Tensor3D;
-  const bestPrediction = await getBestPrediction(predictions);
+  const bestPrediction = getBestPrediction(predictions);
   const scaledPrediction = scalePrediction(bestPrediction, transformParams);
   renderPrediction({
     canvas,
@@ -582,6 +559,41 @@ No matter the image dimensions or aspect ratio.
   src={predictionScaledWide}
   alt="Original wide image next to prediction scaled"
 />
+
+## A quick note on memory management
+
+When working with TensorFlow.js, it is important to manage memory properly to avoid memory leaks and performance issues. Tensors are allocated in GPU memory, and if they are not disposed of properly, they will accumulate over time.
+There are two options to manage memory:
+1. Use the `dispose` function to manually release tensors when they are no longer needed. This can be cumbersome and error-prone, especially in complex applications where many tensors are created and used.
+2. Use the `tidy` function to automatically dispose of tensors created within its scope. This function only works with synchronous code, that is why in our implementation we use `tensor.dataSync()` instead of `tensor.data()`. This greatly simplifies memory management, as it automatically cleans up tensors created within its scope, but at the cost of speed, since async operations are more performant.
+
+So remember to always dispose of tensors when they are no longer needed, either manually or using `tidy` to automatically clean up:
+
+```ts
+import { tidy, loadGraphModel, type Tensor3D } from "@tensorflow/tfjs";
+async function main() {
+  const image = document.querySelector("img")!;
+  const canvas = document.querySelector("canvas")!;
+  const modelURL = "/yolov8n-pose_web_model/model.json";
+  const model = await loadGraphModel(modelURL);
+  // ...
+  tidy(() => {
+    const { processedImage, transformParams } = processImageWithLetterboxing(image, model);
+    const predictions = model.predict(processedImage) as Tensor3D;
+    const bestPrediction = getBestPrediction(predictions);
+    const scaledPrediction = scalePrediction(bestPrediction, transformParams);
+    renderPrediction({
+      canvas,
+      source: image,
+      ...scaledPrediction,
+      width: transformParams.originalWidth,
+      height: transformParams.originalHeight,
+    });
+  });
+}
+```
+
+In this examples, since all tensors are created within the `tidy` function, they will be automatically disposed of when the function finishes executing, even if they are created by other functions inside the call stack. If the `tidy` function returns a tensor, it will be the only tensor that is not disposed of automatically, so you can use it outside the `tidy` scope. If you wanted to use async operations, you would need to structure your code to clearly separate the synchronous and asynchronous parts, using `tidy` only for the synchronous parts and manually calling `dispose` for tensors created in the asynchronous ones.
 
 ## Conclusion
 
