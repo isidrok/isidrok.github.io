@@ -1,0 +1,568 @@
+---
+title: "Computer Vision in the browser"
+description: "Deep dive into how to run computer vision models in the browser using TensorFlow.js and YOLOv8 pose estimation model."
+date: "2025-05-30"
+slug: "computer-vision-web"
+draft: true
+repository: "https://github.com/isidrok/computer-vision-web"
+liveDemo: "https://isidrok.github.io/computer-vision-web/"
+---
+
+import { Image } from "astro:assets";
+import resized from "./assets/resized.png";
+import prediction from "./assets/prediction.png";
+import predictionMisplaced from "./assets/prediction-misplaced.png";
+import predictionStretched from "./assets/prediction-stretched.png";
+import padded from "./assets/padded.png";
+import paddedPrediction from "./assets/padded-prediction.png";
+import predictionScaled from "./assets/prediction-scaled.png";
+import predictionScaledWide from "./assets/prediction-scaled-wide.png";
+
+I have recently started practicing [Kettlebell Sport](https://beallio.github.io/kettlebell-sport/). One of the main modalities is Long Cycle, where athletes must complete as many Clean & Jerk repetitions as possible within 10 minutes without putting the bells down. This technical lift requires intense focus on form and technique, making it nearly impossible to count repetitions in real-time.
+
+Join me on a journey from zero machine learning knowledge to building a web-based computer vision application that can analyze human poses and ultimately create a Kettlebell Sport tracking tool.
+
+## Bringing machine learning to the browser
+
+When I fist started looking at computer vision technologies I wanted something that could run in the user device. This has some obvious advantages:
+
+1. It is free.
+2. It doesn't require a backend.
+3. The data sits with the user.
+
+The first model I came across was Ultralytics [YOLOv8](https://yolov8.com/), a pretty popular, open source, object detection and image segmentation model, which along many other things, supports human keypoint detection with its dedicate pose model. The choice was pretty obvious.
+
+Then I needed to be able to run the model in the browser, fortunately Ultralytics offers a wide range of options for [exporting a trained model](https://docs.ultralytics.com/modes/export/#export-formats) to different formats, from which I chose [TensorFlow.js](https://www.tensorflow.org/js) a library that lets us use machine learning models in the browser or Node.js.
+
+## Loading the model
+
+In order to load the model we first need the appropriate format, you can find it online but lets go ahead and export it ourselves using [Ultralytics](https://docs.ultralytics.com/quickstart/):
+
+```bash
+pip install ultralytics
+yolo export model=yolov8n-pose.pt format=tfjs
+```
+
+Once we have the model export we can easily load it using [@tensorflow/tfjs](https://github.com/tensorflow/tfjs):
+
+```ts
+import { loadGraphModel } from "@tensorflow/tfjs";
+
+async function main() {
+  const modelURL = "/yolov8n-pose_web_model/model.json";
+  const model = await loadGraphModel(modelURL);
+}
+
+main();
+```
+
+And is done, we can now start using the model.
+
+## Input processing
+
+Before continuing lets have a look at the theory so we can understand what we are doing:
+
+- **TensorFlow** is a library that allows us to define and perform operations with **Tensors**.
+- A **Tensor** is a multidimensional array and it can have several dimensions or ranks. A 1D Tensor is like a vector, a 2D Tensor is equivalent to a matrix, a 3D Tensor would look like a cube, a 4D one like a stack of cubes, and so on.
+- Tensors have a **shape** which define the dimensions of the tensor. For example a tensor of shape [20,20,3] is a tensor with 3 dimensions which have 20, 20 and 3 indexes respectively. If that was representing a 2D image, we could say that the first dimension is the Y axis, the second one the X axis and the third one the color channels (R,G,B). The following tensor of shape [2,2,3] represents a 2x2 image with a checker pattern:
+
+  ```
+  [
+    [[0,0,0], [1,1,1]],
+    [[1,1,1], [0,0,0]]
+  ]
+  ```
+
+- Models come with an input shape and an output shape, which will dictate how the data must be sent and how the result must be interpreted.
+
+Having this into account lets use Tensorflow to create a tensor from an image and have a look at the different tensor shapes we will be dealing with:
+
+```html
+ <img 
+    src="https://isidrok.github.io/computer-vision-web/432x432.jpg"
+    alt=""
+    crossorigin="anonymous"
+  />
+  <canvas></canvas>
+```
+
+```ts
+import {
+  loadGraphModel,
+  browser as tfBrowser,
+  type Tensor3D,
+} from "@tensorflow/tfjs";
+
+async function main() {
+  const image = document.querySelector("img")!;
+  const canvas = document.querySelector("canvas")!;
+  const modelURL = "/yolov8n-pose_web_model/model.json";
+  const model = await loadGraphModel(modelURL);
+  const modelShape = model.inputs[0].shape!;
+  console.log("Model input shape:", modelShape);
+  // [1, 640, 640, 3]
+  const [modelHeight, modelWidth] = modelShape.slice(1, 3);
+  const imageTensor = tfBrowser.fromPixels(image);
+  console.log("Image shape:", imageTensor.shape);
+  // [432, 432, 3]
+  const processedImage = imageTensor
+    .expandDims(0) // Add batch dimension
+    .toFloat() // Convert to float32
+    .div(255) // Normalize to [0, 1]
+    .resizeBilinear<Tensor3D>([modelHeight, modelWidth]); // Resize to model input shape
+  console.log("Processed image shape:", processedImage.shape);
+  // [1, 640, 640, 3]
+  canvas.height = modelHeight;
+  canvas.width = modelWidth;
+  // Remove the batch dimension so the image can be rendered
+  tfBrowser.toPixels(processedImage.squeeze<Tensor3D>([0]), canvas);
+  // Don't forget to clean up
+  dispose([imageTensor, processedImage]);
+}
+main();
+```
+
+As you can see the model expects an input of shape `[1, 640, 640, 3]`, which means a batch of 1 image with a height and width of 640 pixels and 3 color channels (RGB). Another interesting fact is that most models work with values between 0 and 1. The image we are using has a shape of `[432, 432, 3]`, and each value is between 0 and 255 so we need to:
+1. Add the batch dimension.
+2. Normalize the image values by dividing them by 255.
+3. Resize the image so it matches the model input size.
+
+After processing the image we can see that the shape is now `[1, 640, 640, 3]`, which is what the model expects. Rendering the image on the canvas will show the resized image:
+
+<Image src={resized} alt="Resized image next to original image" />
+
+If the image aspect ratio is different from the model input size, the image will be distorted. In this case we are using a square image so it works fine, but check the [live demo](https://isidrok.github.io/computer-vision-web/01-input-processing.html) to see what happens with images of different aspect ratios. We will later see how to apply letterboxing to avoid this distortion but now lets move on to processing the image with the model.
+
+## Output processing
+
+Once we have the processed image we can run it through the model and get the output:
+
+```ts
+// ... previous code
+const predictions = model.predict(processedImage) as Tensor3D;
+console.log(predictions.shape);
+// [1, 56, 8400]
+```
+
+The output shape is `[1, 56, 8400]`:
+- 1: batch size the model has done 1 prediction on a single image.
+- 56: channels, the model outputs 56 values per detection, which includes the person box (x, y, width, height, confidence), and the 17 keypoints (x, y, confidence).
+- 8400: the number of detections made.
+
+We could represent the output in the following table:
+
+| Channel | Pred 1 | ...    | Pred 8400 |
+|---------|--------|--------|-----------|
+| x       | 320    | ...    | 100       |
+| y       | 240    | ...    | 120       |
+| w       | 100    | ...    | 80        |
+| h       | 200    | ...    | 90        |
+| conf    | 0.92   | ...    | 0.85      |
+| kpt1_x  | 330    | ...    | 110       |
+| kpt1_y  | 250    | ...    | 130       |
+| kpt1_c  | 0.80   | ...    | 0.70      |
+| kpt2_x  | 340    | ...    | 120       |
+| kpt2_y  | 260    | ...    | 140       |
+| kpt2_c  | 0.75   | ...    | 0.65      |
+| ...     | ...    | ...    | ...       |
+| kpt17_x | 350    | ...    | 130       |
+| kpt17_y | 270    | ...    | 150       |
+| kpt17_c | 0.70   | ...    | 0.60      |
+
+To make sense of the output we are going to:
+1. Transpose the tensor from `[1, 56, 8400]` to `[1, 8400, 56]`. This will make working with predictions easier.
+2. Extract and convert the box coordinates, from center (x,y) and size (w,h) to corner coordinates (x1,y1,x2,y2).
+3. Extract the confidence scores and find the best detection.
+4. Return the data for the best detection, which includes the box coordinates and the keypoints.
+
+```ts
+async function getBestPrediction(predictions: Tensor3D): Promise<{
+  box: [number, number, number, number];
+  score: number;
+  keypoints: [number, number, number][];
+}> {
+  // Reshape predictions from [1, 56, 8400] to [1, 8400, 56] for easier processing
+  // Each of the 8400 predictions now has 56 values: [x, y, w, h, conf, kpt1_x, kpt1_y, kpt1_c, ...]
+  const reshapedPredictions = predictions.transpose([0, 2, 1]);
+
+  // Extract bounding box components (center format: x, y, width, height)
+  const centerX = slice(reshapedPredictions, [0, 0, 0], [-1, -1, 1]);
+  const centerY = slice(reshapedPredictions, [0, 0, 1], [-1, -1, 1]);
+  const width = slice(reshapedPredictions, [0, 0, 2], [-1, -1, 1]);
+  const height = slice(reshapedPredictions, [0, 0, 3], [-1, -1, 1]);
+
+  // Convert from center format to corner format (x1, y1, x2, y2)
+  const halfWidth = div(width, 2);
+  const halfHeight = div(height, 2);
+  const x1 = sub(centerX, halfWidth);
+  const y1 = sub(centerY, halfHeight);
+  const x2 = add(centerX, halfWidth);
+  const y2 = add(centerY, halfHeight);
+
+  // Extract confidence scores and keypoints
+  const confidenceScores = slice(reshapedPredictions, [0, 0, 4], [-1, -1, 1]);
+  const allKeypoints = slice(reshapedPredictions, [0, 0, 5], [-1, -1, -1]); // All remaining 51 values (17 keypts × 3)
+
+  // Find the prediction with highest confidence
+  const scoresArray = await confidenceScores.data();
+  const bestPredictionIndex = scoresArray.indexOf(Math.max(...scoresArray));
+  const bestConfidence = scoresArray[bestPredictionIndex];
+
+  // Extract the best bounding box [x1, y1, x2, y2]
+  const bestBoundingBox = squeeze(
+    concat(
+      [
+        slice(x1, [0, bestPredictionIndex, 0], [1, 1, 1]),
+        slice(y1, [0, bestPredictionIndex, 0], [1, 1, 1]),
+        slice(x2, [0, bestPredictionIndex, 0], [1, 1, 1]),
+        slice(y2, [0, bestPredictionIndex, 0], [1, 1, 1]),
+      ],
+      2
+    )
+  );
+
+  // Extract the best keypoints (51 values: 17 keypoints × 3 values each)
+  const bestKeypointsTensor = squeeze(
+    slice(allKeypoints, [0, bestPredictionIndex, 0], [1, 1, -1])
+  );
+
+  // Convert keypoints tensor to array and group into [x, y, confidence] triplets
+  const keypointsData = [...(await bestKeypointsTensor.data())];
+  const formattedKeypoints: [number, number, number][] = [];
+
+  for (let i = 0; i < keypointsData.length; i += 3) {
+    const x = keypointsData[i];
+    const y = keypointsData[i + 1];
+    const confidence = keypointsData[i + 2];
+    formattedKeypoints.push([x, y, confidence]);
+  }
+  const boxData = [...(await bestBoundingBox.data())] as [
+    number,
+    number,
+    number,
+    number
+  ];
+
+  // Clean up tensors to prevent memory leaks
+  dispose([
+    reshapedPredictions,
+    centerX,
+    centerY,
+    width,
+    height,
+    halfWidth,
+    halfHeight,
+    x1,
+    y1,
+    x2,
+    y2,
+    confidenceScores,
+    allKeypoints,
+    bestBoundingBox,
+    bestKeypointsTensor,
+  ]);
+
+  return {
+    box: boxData,
+    score: bestConfidence,
+    keypoints: formattedKeypoints,
+  };
+}
+```
+
+Finally, after calculating the best prediction, we can render the bounding box and keypoints on the canvas:
+
+```ts
+function renderPrediction(props: {
+  canvas: HTMLCanvasElement;
+  score: number;
+  box: [number, number, number, number];
+  keypoints: [number, number, number][];
+  width: number;
+  height: number;
+  source: HTMLImageElement;
+}) {
+  const threshold = 0.5;
+  const { canvas, box, keypoints, width, height, source, score } = props;
+  if (score < threshold) {
+    return;
+  }
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(source, 0, 0, width, height);
+
+  // Draw bounding box
+  const [x1, y1, x2, y2] = box;
+  ctx.strokeStyle = "lime";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+  // Draw keypoints
+  for (const [x, y, c] of keypoints) {
+    if (c > threshold) {
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = "red";
+      ctx.fill();
+    }
+  }
+}
+```
+
+Putting it all together we can now run the model on an image and render the results::
+
+```ts
+function processImage(image: HTMLImageElement, model: GraphModel) {
+  const modelShape = model.inputs[0].shape!;
+  const [modelHeight, modelWidth] = modelShape.slice(1, 3);
+  const imageTensor = tfBrowser.fromPixels(image);
+  const processedImage = imageTensor
+    .expandDims(0)
+    .toFloat()
+    .div(255)
+    .resizeBilinear<Tensor3D>([modelHeight, modelWidth]);
+  dispose([imageTensor]);
+  return processedImage;
+}
+
+async function main() {
+  const image = document.querySelector("img")!;
+  const canvas = document.querySelector("canvas")!;
+  const modelURL = "/yolov8n-pose_web_model/model.json";
+  const model = await loadGraphModel(modelURL);
+  const modelShape = model.inputs[0].shape!;
+  const [modelHeight, modelWidth] = modelShape.slice(1, 3);
+  const processedImage = processImage(image, model);
+  const predictions = model.predict(processedImage) as Tensor3D;
+  const bestPrediction = await getBestPrediction(predictions);
+
+  renderPrediction({
+    canvas,
+    source: image,
+    ...bestPrediction,
+    // replace with image.width and image.height
+    // if you want to render on original image
+    width: modelWidth, 
+    height: modelHeight,
+  });
+  dispose([processedImage, predictions]);
+}
+main();
+```
+
+Here is the result of running the model on the previous image:
+
+<Image src={prediction} alt="Original image next to image with predictions" />
+
+There are still two things to consider:
+1. We cannot render the predictions on the original image because they are relative to the model input size.
+<Image src={predictionMisplaced} alt="Original image next to original image with predictions misplaced" />
+
+2. If the image aspect ratio is different from the model input size, the image will be distorted.
+<Image src={predictionStretched} alt="Original image next to stretched image with predictions" />
+
+Lets apply letterboxing and scaling transformations to the model output to avoid these issues.
+
+## Letterboxing and scaling
+
+Letterboxing is a technique used in video and film to display widescreen content on standard-width screens without distorting the image by adding black bars to the top and bottom or sides of the image. In our case, we will use it to maintain the aspect ratio of the original image while resizing it to fit the model input size.
+
+To do so we will need to calculate which is the largest dimension of the image that can fit into the model input size, and then calculate the letterbox size to fill the remaining space. This will allow us to resize the image without distorting it.
+
+```ts
+function processImageWithLetterboxing(
+  image: HTMLImageElement,
+  model: GraphModel
+) {
+  // Get model's expected input dimensions
+  const modelInputShape = model.inputs[0].shape!;
+  const [modelHeight, modelWidth] = modelInputShape.slice(1, 3);
+
+  // Convert image to tensor and normalize to [0, 1]
+  const originalImageTensor = tfBrowser.fromPixels(image).toFloat().div(255);
+
+  // Step 1: Calculate letterboxing parameters
+  // Find the larger dimension to determine the target square size
+  const originalWidth = image.width;
+  const originalHeight = image.height;
+  const targetSquareSize = Math.max(originalWidth, originalHeight);
+
+  // Calculate how much padding is needed on each axis
+  const totalWidthPadding = targetSquareSize - originalWidth;
+  const totalHeightPadding = targetSquareSize - originalHeight;
+
+  // Distribute padding equally on both sides (center the image)
+  const leftPadding = Math.floor(totalWidthPadding / 2);
+  const rightPadding = totalWidthPadding - leftPadding;
+  const topPadding = Math.floor(totalHeightPadding / 2);
+  const bottomPadding = totalHeightPadding - topPadding;
+
+  console.log(`Original: ${originalWidth}x${originalHeight}`);
+  // Original: 250x405
+  console.log(`Target square: ${targetSquareSize}x${targetSquareSize}`);
+  // Target square: 405x405
+  console.log(
+    `Padding: top=${topPadding}, bottom=${bottomPadding}, left=${leftPadding}, right=${rightPadding}`
+  );
+  // Padding: top=0, bottom=0, left=77, right=78
+
+  // Step 2: Apply letterboxing by adding padding (creates black bars)
+  const letterboxedImage = originalImageTensor.pad<Tensor3D>([
+    [topPadding, bottomPadding], // Height padding
+    [leftPadding, rightPadding], // Width padding
+    [0, 0], // No channel padding
+  ]);
+
+  // Step 3: Resize the square image to model input size
+  const resizedImage = letterboxedImage.resizeBilinear<Tensor3D>([
+    modelHeight,
+    modelWidth,
+  ]);
+
+  // Step 4: Add batch dimension for model input [1, height, width, channels]
+  const batchedImage = resizedImage.expandDims(0);
+
+  // Clean up intermediate tensors
+  dispose([originalImageTensor, letterboxedImage, resizedImage]);
+
+  return batchedImage;
+}
+```
+
+Lets try it out:
+
+```ts
+// ... previous code
+const processedImage = processImageWithLetterboxing(image, model);
+tfBrowser.toPixels(processedImage.squeeze<Tensor3D>([0]), canvas);
+```
+
+Now the image is resized without distortion and padded with black bars to fit the model input size.
+<Image src={padded} alt="Original image next to padded image" />
+
+The predictions are still relative to the model input size, so we need to scale them back to the original image size. We will also need to account for the added padding.
+<Image src={paddedPrediction} alt="Original image next to predictions from padded image" />
+
+We need to modify the `processImageWithLetterboxing` function to return the vertical and horizontal padding values as well as the scale factor, so we can use them to scale the predictions back to the original image size:
+
+```ts
+function processImageWithLetterboxing(
+  image: HTMLImageElement,
+  model: GraphModel
+) {
+   // ... previous code
+  
+  // Calculate transformation parameters for mapping predictions back to original coordinates
+  const scale = targetSquareSize / modelWidth; // Scale factor to map from model space back to letterboxed space
+  const xOffset = leftPadding; // X displacement caused by letterboxing
+  const yOffset = topPadding; // Y displacement caused by letterboxing
+
+  console.log(
+    `Transformation - scale: ${scale}, xOffset: ${xOffset}, yOffset: ${yOffset}`
+  );
+  // Transformation - scale: 0.6328125, xOffset: 77, yOffset: 0
+
+  // ... previous code
+  return {
+    processedImage: batchedImage,
+    transformParams: {
+      scale,
+      xOffset,
+      yOffset,
+      originalWidth,
+      originalHeight,
+    },
+  };
+}
+```
+
+Finally we will create a function `scalePrediction` that will scale the predictions back to the original image size by multiplying the coordinates by the scale factor and subtracting the offsets:
+
+```ts
+function transformCoordinate(
+  coord: number,
+  scale: number,
+  offset: number
+): number {
+  // Transform coordinates from model space back to original image space
+  return coord * scale - offset;
+}
+
+function scalePrediction(
+  prediction: {
+    box: [number, number, number, number];
+    score: number;
+    keypoints: [number, number, number][];
+  },
+  transformParams: {
+    scale: number;
+    xOffset: number;
+    yOffset: number;
+  }
+) {
+  const { scale, xOffset, yOffset } = transformParams;
+
+  // Transform bounding box coordinates
+  const [modelX1, modelY1, modelX2, modelY2] = prediction.box;
+  const scaledBox: [number, number, number, number] = [
+    transformCoordinate(modelX1, scale, xOffset),
+    transformCoordinate(modelY1, scale, yOffset),
+    transformCoordinate(modelX2, scale, xOffset),
+    transformCoordinate(modelY2, scale, yOffset),
+  ];
+
+  // Transform keypoint coordinates
+  const scaledKeypoints: [number, number, number][] = prediction.keypoints.map(
+    ([x, y, confidence]) => [
+      transformCoordinate(x, scale, xOffset),
+      transformCoordinate(y, scale, yOffset),
+      confidence,
+    ]
+  );
+
+  return {
+    box: scaledBox,
+    score: prediction.score,
+    keypoints: scaledKeypoints,
+  };
+}
+
+async function main() {
+  // ... previous code
+
+  const { processedImage, transformParams } = processImageWithLetterboxing(
+    image,
+    model
+  );
+  const predictions = model.predict(processedImage) as Tensor3D;
+  const bestPrediction = await getBestPrediction(predictions);
+  const scaledPrediction = scalePrediction(bestPrediction, transformParams);
+  renderPrediction({
+    canvas,
+    source: image,
+    ...scaledPrediction,
+    width: transformParams.originalWidth,
+    height: transformParams.originalHeight,
+  });
+  
+  // ... previous code
+}
+```
+
+And with this approach, we can now render the predictions on the original image without distortion or misplaced bounding boxes.
+
+<Image src={predictionScaled} alt="Original image next to prediction scaled" />
+
+No matter the image dimensions or aspect ratio.
+
+<Image src={predictionScaledWide} alt="Original wide image next to prediction scaled" />
+
+## Conclusion
+
+In this post, we have explored how to run computer vision models in the browser using TensorFlow.js and YOLOv8 pose estimation model. We have learned how to process images, run predictions, and render results on the canvas while maintaining the original image aspect ratio.
+
+In a future post, we will explore how to use this model to create a Kettlebell Sport tracking tool by connecting the model to the camera and processing the video stream in real-time. We will also have a look at modern browser APIs that will allow us to record and store the sessions in the user device. 
+
+Remember to check the [live demo](https://isidrok.github.io/computer-vision-web/) and review the annotated final implementation in the [source repository](https://github.com/isidrok/computer-vision-web/blob/main/src/index.ts) 

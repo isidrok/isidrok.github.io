@@ -17,6 +17,7 @@ import backpressureBig from "./assets/backpressure-big.png";
 When transferring data to clients—whether it's an HTML file or a large ZIP archive—[Streams](https://nodejs.org/api/stream.html) offer significant advantages. By streaming data, we can begin transmission while content is still being generated, rather than waiting to load the entire file into memory. This approach not only conserves server resources but also provides a faster experience for clients.
 
 In this guide, you'll learn:
+
 - How to implement basic HTTP streaming in Node.js
 - Proper error handling strategies for streams
 - How to manage backpressure effectively
@@ -322,15 +323,15 @@ From 1.5GB+ to maybe 400MB peaks? Pretty good.
 
 ## Key Takeaways
 
-* **Use streams wisely**: Implement streams to reduce memory usage and improve response time
-* **Plan for errors**: Design error handling strategies appropriate for your use case
-* **Prefer `pipe()`**: Use the `pipe()` method whenever possible for automatic backpressure handling
-* **Consider generators**: When writing custom readable streams, leverage generators for cleaner code
-* **Monitor performance**: Use tools like Clinic.js to track your application's behavior
-* **Test edge cases**: Remember that backpressure isn't always immediately apparent—test with slow clients
-* **Configure buffers**: Adjust internal [stream buffer size](https://nodejs.org/api/stream.html#buffering) using `highWaterMark` when needed
-* **Verify third-party streams**: When using external readable streams, ensure they handle backpressure properly
-* **Consider alternatives**: For non-pausable data sources, explore options like [`Range requests`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Range_requests)
+- **Use streams wisely**: Implement streams to reduce memory usage and improve response time
+- **Plan for errors**: Design error handling strategies appropriate for your use case
+- **Prefer `pipe()`**: Use the `pipe()` method whenever possible for automatic backpressure handling
+- **Consider generators**: When writing custom readable streams, leverage generators for cleaner code
+- **Monitor performance**: Use tools like Clinic.js to track your application's behavior
+- **Test edge cases**: Remember that backpressure isn't always immediately apparent—test with slow clients
+- **Configure buffers**: Adjust internal [stream buffer size](https://nodejs.org/api/stream.html#buffering) using `highWaterMark` when needed
+- **Verify third-party streams**: When using external readable streams, ensure they handle backpressure properly
+- **Consider alternatives**: For non-pausable data sources, explore options like [`Range requests`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Range_requests)
 
 Sometimes we don't want to handle backpressure, and instead let slow clients drop packages. For an example implementation, see this [leaky stream implementation](https://ey3ball.github.io/posts/2014/07/17/node-streams-back-pressure/).
 
