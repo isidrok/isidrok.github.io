@@ -250,6 +250,75 @@ td:last-child {
   border-right: none;
 }
 
+// Table of Contents
+.toc,
+#table-of-contents + ul {
+  margin-block: 2rem;
+  font-size: 0.9rem;
+  border-left: 3px solid var(--color-border);
+  padding-left: 1rem;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-left-color: var(--color-fg-primary);
+  }
+
+  li {
+    margin-block: 0.3rem;
+    list-style: none;
+
+    a {
+      color: var(--color-fg-secondary);
+      text-decoration: none;
+      display: block;
+      padding: 0.2rem 0.5rem 0.2rem 0;
+      border-radius: 3px;
+      position: relative;
+      transition: all 0.25s ease;
+      transform: translateX(0);
+
+      &:hover {
+        color: var(--color-fg-primary);
+        transform: translateX(4px);
+        background-color: rgba(34, 34, 34, 0.03);
+      }
+
+      &:visited {
+        color: var(--color-fg-secondary);
+      }
+
+      // Greater than symbol on hover
+      &::before {
+        content: ">";
+        position: absolute;
+        left: -12px;
+        top: 50%;
+        transform: translateY(-50%) scale(0);
+        color: var(--color-accent-primary);
+        font-weight: 600;
+        font-size: 0.8em;
+        transition: all 0.25s ease;
+        opacity: 0;
+      }
+
+      &:hover::before {
+        transform: translateY(-50%) scale(1);
+        opacity: 1;
+      }
+    }
+  }
+
+  // Nested list indentation
+  ul {
+    margin-left: 1rem;
+    margin-block: 0.3rem;
+
+    li {
+      list-style: none;
+    }
+  }
+}
+
 // Anchored elements
 :target {
   scroll-margin-block: 5ex;

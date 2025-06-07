@@ -2,6 +2,9 @@
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import mdx from "@astrojs/mdx";
+import remarkToc from "remark-toc";
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
 
 // https://astro.build/config
 export default defineConfig({
@@ -17,6 +20,11 @@ export default defineConfig({
     }),
   ],
   markdown: {
+    remarkPlugins: [[remarkToc, { heading: "Table of Contents", maxDepth: 4 }]],
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, { behavior: "append" }],
+    ],
     shikiConfig: {
       theme: "dark-plus",
     },
