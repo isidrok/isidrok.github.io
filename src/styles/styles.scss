@@ -196,12 +196,14 @@ pre {
   }
 }
 
-p code {
+// Inline code styling
+code:not(pre code) {
   background-color: var(--color-surface-secondary);
   padding: 0.2em 0.4em;
   border: 1px solid var(--color-border);
   color: var(--color-accent-primary);
   font-size: 0.875em;
+  border-radius: 3px;
 }
 
 // Blockquotes

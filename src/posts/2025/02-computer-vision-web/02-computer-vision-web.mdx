@@ -19,32 +19,34 @@ import predictionScaledWide from "./assets/prediction-scaled-wide.png";
 
 I have recently started practicing [Kettlebell Sport](https://beallio.github.io/kettlebell-sport/). One of the main modalities is Long Cycle, where athletes must complete as many Clean & Jerk repetitions as possible within 10 minutes without putting the bells down. This technical lift requires intense focus on form and technique, making it nearly impossible to count repetitions in real-time.
 
-Join me on a journey from zero machine learning knowledge to building a web-based computer vision application that can analyze human poses and ultimately create a Kettlebell Sport tracking tool.
+This got me thinking: there must be a way to use machine learning models to track repetitions in real-time, and there must be a way to run them directly in the browser.
+
+In this post, I will show you how to run a computer vision model in the browser using TensorFlow.js and the YOLOv8 pose estimation model.
 
 ## Table of Contents
 
 ## Bringing machine learning to the browser
 
-When I first started looking at computer vision technologies I wanted something that could run in the user device. This has some obvious advantages:
+When I first started looking at computer vision technologies, I wanted something that could run on the user's device. This has some obvious advantages:
 
 1. It is free.
 2. It doesn't require a backend.
-3. The data sits with the user.
+3. The data stays with the user.
 
-The first model I came across was Ultralytics [YOLOv8](https://yolov8.com/), a pretty popular, open source object detection and image segmentation model, which along many other things, supports human keypoint detection with its dedicated pose model. The choice was pretty obvious.
+The first model I came across was Ultralytics [YOLOv8](https://yolov8.com/), a popular, open-source object detection and image segmentation model, which among many other things, supports human keypoint detection with its dedicated pose model. The choice was pretty obvious.
 
-Then I needed to be able to run the model in the browser, fortunately Ultralytics offers a wide range of options for [exporting a trained model](https://docs.ultralytics.com/modes/export/#export-formats) to different formats, from which I chose [TensorFlow.js](https://www.tensorflow.org/js) a library that lets us use machine learning models in the browser or Node.js.
+Then I needed to be able to run the model in the browser. Fortunately, Ultralytics offers a wide range of options for [exporting a trained model](https://docs.ultralytics.com/modes/export/#export-formats) to different formats, from which I chose [TensorFlow.js](https://www.tensorflow.org/js), a library that lets us use machine learning models in the browser or Node.js.
 
 ## Loading the model
 
-In order to load the model we first need the appropriate format, you can find it online but let's go ahead and export it ourselves using [Ultralytics](https://docs.ultralytics.com/quickstart/):
+In order to load the model, we first need the appropriate format. You can find it online, but let's go ahead and export it ourselves using [Ultralytics](https://docs.ultralytics.com/quickstart/):
 
 ```bash
 pip install ultralytics
 yolo export model=yolov8n-pose.pt format=tfjs
 ```
 
-Once we have the model export we can easily load it using [@tensorflow/tfjs](https://github.com/tensorflow/tfjs):
+Once we have the model export, we can easily load it using [@tensorflow/tfjs](https://github.com/tensorflow/tfjs):
 
 ```ts
 import { loadGraphModel } from "@tensorflow/tfjs";
@@ -57,15 +59,15 @@ async function main() {
 main();
 ```
 
-And it's done, we can now start using the model.
+And it's done—we can now start using the model.
 
 ## Input processing
 
-Before continuing lets have a look at the theory so we can understand what we are doing:
+Before continuing, let's review some concepts so we can understand what we are doing:
 
-- **TensorFlow** is a library that allows us to define and perform operations with **Tensors**.
-- A **Tensor** is a multidimensional array and it can have several dimensions or ranks. A 1D Tensor is like a vector, a 2D Tensor is equivalent to a matrix, a 3D Tensor would look like a cube, a 4D one like a stack of cubes, and so on.
-- Tensors have a **shape** which define the dimensions of the tensor. For example a tensor of shape [20,20,3] is a tensor with 3 dimensions which have 20, 20 and 3 indexes respectively. If that was representing a 2D image, we could say that the first dimension is the Y axis, the second one the X axis and the third one the color channels (R,G,B). The following tensor of shape [2,2,3] represents a 2x2 image with a checker pattern:
+- **TensorFlow** is a library that allows us to define and perform operations with **tensors**.
+- A **tensor** is a multidimensional array and it can have several dimensions or ranks. A 1D tensor is like a vector, a 2D tensor is equivalent to a matrix, a 3D tensor would look like a cube, a 4D one like a stack of cubes, and so on.
+- Tensors have a **shape** which defines the dimensions of the tensor. For example, a tensor of shape `[20, 20, 3]` is a tensor with 3 dimensions which have 20, 20, and 3 indices respectively. If that was representing a 2D image, we could say that the first dimension is the height (Y axis), the second one the width (X axis), and the third one the color channels (RGB). Note that TensorFlow.js follows the height-width convention. The following tensor of shape `[2, 2, 3]` represents a 2x2 image with a checker pattern:
 
   ```
   [
@@ -92,7 +94,6 @@ import {
   loadGraphModel,
   browser as tfBrowser,
   dispose,
-  type Tensor3D,
 } from "@tensorflow/tfjs";
 
 async function main() {
@@ -103,7 +104,35 @@ async function main() {
   const modelShape = model.inputs[0].shape!;
   console.log("Model input shape:", modelShape);
   // [1, 640, 640, 3]
+  const imageTensor = tfBrowser.fromPixels(image);
+  console.log("Image shape:", imageTensor.shape);
+  // [432, 432, 3]
+  dispose([imageTensor]); // Don't forget to clean up
+}
+main();
+```
+
+As you can see, the model expects an input of shape `[1, 640, 640, 3]`, which means a batch of 1 image with a height and width of 640 pixels and 3 color channels (RGB). Another interesting fact is that most models work with values between 0 and 1. The image we are using has a shape of `[432, 432, 3]`, and each value is between 0 and 255, so we need to:
+
+1. Add the batch dimension.
+2. Normalize the image values by dividing them by 255.
+3. Resize the image so it matches the model input size.
+
+Let's take care of that. In this improved version, we'll also use TensorFlow's `tidy` function for better memory management, it will automatically dispose of the tensors created within its scope:
+
+```ts
+import {
+  loadGraphModel,
+  browser as tfBrowser,
+  tidy,
+  type Tensor3D,
+} from "@tensorflow/tfjs";
+
+function processImage(image: HTMLImageElement, model: GraphModel) {
+  const modelShape = model.inputs[0].shape!;
   const [modelHeight, modelWidth] = modelShape.slice(1, 3);
+  console.log("Model input shape:", modelShape);
+  // [1, 640, 640, 3]
   const imageTensor = tfBrowser.fromPixels(image);
   console.log("Image shape:", imageTensor.shape);
   // [432, 432, 3]
@@ -114,47 +143,38 @@ async function main() {
     .resizeBilinear([modelHeight, modelWidth]); // Resize to model input shape
   console.log("Processed image shape:", processedImage.shape);
   // [1, 640, 640, 3]
-  canvas.height = modelHeight;
-  canvas.width = modelWidth;
-  // Remove the batch dimension so the image can be rendered
-  tfBrowser.toPixels(processedImage.squeeze<Tensor3D>([0]), canvas);
-  // Don't forget to clean up
-  dispose([imageTensor, processedImage]);
+  return processedImage;
 }
+
+async function main() {
+  const image = document.querySelector("img")!;
+  const canvas = document.querySelector("canvas")!;
+  const modelURL = "/yolov8n-pose_web_model/model.json";
+  const model = await loadGraphModel(modelURL);
+  // We can use tidy to automatically dispose of tensors created within its scope
+  tidy(() => {
+    const modelShape = model.inputs[0].shape!;
+    const [modelHeight, modelWidth] = modelShape.slice(1, 3);
+    const processedImage = processImage(image, model);
+    canvas.height = modelHeight;
+    canvas.width = modelWidth;
+    // Remove the batch dimension so the image can be rendered
+    tfBrowser.toPixels(processedImage.squeeze<Tensor3D>([0]), canvas);
+  });
+}
+
 main();
 ```
 
-As you can see the model expects an input of shape `[1, 640, 640, 3]`, which means a batch of 1 image with a height and width of 640 pixels and 3 color channels (RGB). Another interesting fact is that most models work with values between 0 and 1. The image we are using has a shape of `[432, 432, 3]`, and each value is between 0 and 255 so we need to:
-
-1. Add the batch dimension.
-2. Normalize the image values by dividing them by 255.
-3. Resize the image so it matches the model input size.
-
-Let's move that logic to a dedicated function:
-
-```ts
-function processImage(image: HTMLImageElement, model: GraphModel) {
-  const modelShape = model.inputs[0].shape!;
-  const [modelHeight, modelWidth] = modelShape.slice(1, 3);
-  const imageTensor = tfBrowser.fromPixels(image);
-  const processedImage = imageTensor
-    .expandDims(0)
-    .toFloat()
-    .div(255)
-    .resizeBilinear([modelHeight, modelWidth]);
-  return processedImage;
-}
-```
-
-After processing the image we can see that the shape is now `[1, 640, 640, 3]`, which is what the model expects. Rendering the image on the canvas will show the resized image:
+After processing the image, we can see that the shape is now `[1, 640, 640, 3]`, which is what the model expects. Rendering the image on the canvas will show the resized image:
 
 <Image src={resized} alt="Resized image next to original image" />
 
-If the image aspect ratio is different from the model input size, the image will be distorted. In this case we are using a square image so it works fine, but check the [live demo](https://isidrok.github.io/computer-vision-web/01-input-processing.html) to see what happens with images of different aspect ratios. We will later see how to apply letterboxing to avoid this distortion but now lets move on to processing the image with the model.
+If the image aspect ratio is different from the model input size, the image will be distorted. In this case we are using a square image so it works fine, but check the [live demo](https://isidrok.github.io/computer-vision-web/01-input-processing.html) to see what happens with images of different aspect ratios. We will later see how to apply letterboxing to avoid this distortion, but now let's move on to processing the image with the model.
 
 ## Output processing
 
-Once we have the processed image we can run it through the model and get the output:
+Once we have the processed image, we can run it through the model and get the output:
 
 ```ts
 // ... previous code
@@ -165,9 +185,9 @@ console.log(predictions.shape);
 
 The output shape is `[1, 56, 8400]`:
 
-- 1: batch size, the model has done 1 prediction on a single image.
-- 56: channels, the model outputs 56 values per detection, which includes the person box (x, y, width, height, confidence), and the 17 [keypoints or body parts](https://docs.ultralytics.com/tasks/pose/) (x, y, confidence).
-- 8400: the number of detections made.
+- **1**: batch size, the model has done 1 prediction on a single image.
+- **56**: channels, the model outputs 56 values per detection, which includes the person box (x, y, width, height, confidence), and the 17 [keypoints or body parts](https://docs.ultralytics.com/tasks/pose/) (x, y, confidence).
+- **8400**: the number of detections made.
 
 We could represent the output in the following table:
 
@@ -189,10 +209,10 @@ We could represent the output in the following table:
 | kpt17_y | 270    | ... | 150       |
 | kpt17_c | 0.70   | ... | 0.60      |
 
-To make sense of the output we are going to:
+To make sense of the output, we are going to:
 
 1. Transpose the tensor from `[1, 56, 8400]` to `[1, 8400, 56]`. This will make working with predictions easier.
-2. Extract and convert the box coordinates, from center (x,y) and size (w,h) to corner coordinates (x1,y1,x2,y2).
+2. Extract and convert the box coordinates from center `(x, y)` and size `(w, h)` to corner coordinates `(x1, y1, x2, y2)`.
 3. Extract the confidence scores and find the best detection.
 4. Return the data for the best detection, which includes the box coordinates and the keypoints.
 
@@ -313,7 +333,7 @@ function renderPrediction(props: {
 }
 ```
 
-Putting it all together we can now run the model on an image and render the results:
+Putting it all together, we can now run the model on an image and render the results:
 
 ```ts
 async function main() {
@@ -365,7 +385,7 @@ Let's apply letterboxing and scaling transformations to the model output to avoi
 
 Letterboxing is a technique used in video and film to display widescreen content on standard-width screens without distorting the image by adding black bars to the top and bottom or sides of the image. In our case, we will use it to maintain the aspect ratio of the original image while resizing it to fit the model input size.
 
-To do so we will need to calculate which is the largest dimension of the image that can fit into the model input size, and then calculate the letterbox size to fill the remaining space. This will allow us to resize the image without distorting it.
+To do so, we will need to calculate which is the largest dimension of the image that can fit into the model input size, and then calculate the letterbox size to fill the remaining space. This will allow us to resize the image without distorting it.
 
 ```ts
 function processImageWithLetterboxing(
@@ -476,7 +496,7 @@ function processImageWithLetterboxing(
 }
 ```
 
-Finally we will create a function `scalePrediction` that will scale the predictions back to the original image size by multiplying the coordinates by the scale factor and subtracting the offsets:
+Finally, we will create a function `scalePrediction` that will scale the predictions back to the original image size by multiplying the coordinates by the scale factor and subtracting the offsets:
 
 ```ts
 function transformCoordinate(
@@ -563,9 +583,11 @@ No matter the image dimensions or aspect ratio.
 ## A quick note on memory management
 
 When working with TensorFlow.js, it is important to manage memory properly to avoid memory leaks and performance issues. Tensors are allocated in GPU memory, and if they are not disposed of properly, they will accumulate over time.
+
 There are two options to manage memory:
+
 1. Use the `dispose` function to manually release tensors when they are no longer needed. This can be cumbersome and error-prone, especially in complex applications where many tensors are created and used.
-2. Use the `tidy` function to automatically dispose of tensors created within its scope. This function only works with synchronous code, that is why in our implementation we use `tensor.dataSync()` instead of `tensor.data()`. This greatly simplifies memory management, as it automatically cleans up tensors created within its scope, but at the cost of speed, since async operations are more performant.
+2. Use the `tidy` function to automatically dispose of tensors created within its scope. This function only works with synchronous code, which is why in our implementation we use `tensor.dataSync()` instead of `tensor.data()`. This greatly simplifies memory management, as it automatically cleans up tensors created within its scope, but at the cost of speed, since async operations are more performant.
 
 So remember to always dispose of tensors when they are no longer needed, either manually or using `tidy` to automatically clean up:
 
@@ -578,7 +600,10 @@ async function main() {
   const model = await loadGraphModel(modelURL);
   // ...
   tidy(() => {
-    const { processedImage, transformParams } = processImageWithLetterboxing(image, model);
+    const { processedImage, transformParams } = processImageWithLetterboxing(
+      image,
+      model
+    );
     const predictions = model.predict(processedImage) as Tensor3D;
     const bestPrediction = getBestPrediction(predictions);
     const scaledPrediction = scalePrediction(bestPrediction, transformParams);
@@ -593,12 +618,166 @@ async function main() {
 }
 ```
 
-In this examples, since all tensors are created within the `tidy` function, they will be automatically disposed of when the function finishes executing, even if they are created by other functions inside the call stack. If the `tidy` function returns a tensor, it will be the only tensor that is not disposed of automatically, so you can use it outside the `tidy` scope. If you wanted to use async operations, you would need to structure your code to clearly separate the synchronous and asynchronous parts, using `tidy` only for the synchronous parts and manually calling `dispose` for tensors created in the asynchronous ones.
+In this example, since all tensors are created within the `tidy` function, they will be automatically disposed of when the function finishes executing, even if they are created by other functions inside the call stack. If the `tidy` function returns a tensor, it will be the only tensor that is not disposed of automatically, so you can use it outside the `tidy` scope. If you wanted to use async operations, you would need to structure your code to clearly separate the synchronous and asynchronous parts, using `tidy` only for the synchronous parts and manually calling `dispose` for tensors created in the asynchronous ones.
 
-## Conclusion
+## Putting it all together: live video
 
 In this post, we have explored how to run computer vision models in the browser using TensorFlow.js and YOLOv8 pose estimation model. We have learned how to process images, run predictions, and render results on the canvas while maintaining the original image aspect ratio.
 
-In a future post, we will explore how to use this model to create a Kettlebell Sport tracking tool by connecting the model to the camera and processing the video stream in real-time. We will also have a look at modern browser APIs that will allow us to record and store the sessions in the user device.
+Let's put it all together and create a live video stream with the model running in real-time. We will use the [MediaStream API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream) to get the video stream from the camera and process its frames on a loop with the [requestAnimationFrame function](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame).
 
-For now, remember to check the [live demo](https://isidrok.github.io/computer-vision-web/) and review the annotated final implementation in the [source repository](https://github.com/isidrok/computer-vision-web/blob/main/src/index.ts).
+We will start by positioning a canvas over a video element:
+
+```html
+<style>
+  .container {
+    height: 700px;
+    aspect-ratio: 3/4;
+    background: black;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  video,
+  canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+</style>
+<button>Start</button>
+<div class="container">
+  <video autoplay playsinline muted width="100%" height="100%"></video>
+  <canvas width="100%" height="100%"></canvas>
+</div>
+```
+
+And then create two utility functions to start and stop the video stream:
+
+```ts
+async function startVideo({
+  video,
+  width,
+  height,
+}: {
+  video: HTMLVideoElement;
+  width: number;
+  height: number;
+}) {
+  if (window.innerHeight > window.innerWidth) {
+    // Portrait mode: swap width and height
+    [width, height] = [height, width];
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: false,
+    video: {
+      width,
+      height,
+      facingMode: "user",
+    },
+  });
+  video.srcObject = stream;
+
+  // Wait for the video to be loaded
+  return new Promise<void>((resolve) => {
+    video.addEventListener("loadedmetadata", () => resolve(), { once: true });
+  });
+}
+
+function stopVideo(video: HTMLVideoElement) {
+  const stream = video.srcObject as MediaStream;
+  stream.getTracks().forEach((track) => track.stop());
+  video.srcObject = null;
+}
+```
+
+When requesting the user's camera, we can specify the width and height of the video stream, and the facing mode (front or back camera). If the device is in portrait mode, we will swap the width and height to maintain the original aspect ratio.
+
+We will also refactor our previous code to create a function `processImage` that will process frames of the video stream by calling itself recursively with `requestAnimationFrame`:
+
+```ts
+function processImage(
+  canvas: HTMLCanvasElement,
+  source: HTMLImageElement | HTMLVideoElement,
+  model: GraphModel
+): void {
+  tidy(() => {
+    // Process image with letterboxing to maintain aspect ratio
+    const { processedImage, transformParams } = processImageWithLetterboxing(
+      source,
+      model
+    );
+
+    // Run model inference
+    const predictions = model.predict(processedImage) as Tensor3D;
+
+    // Extract best prediction and transform coordinates back to original image space
+    const bestPrediction = getBestPrediction(predictions);
+    const scaledPrediction = scalePrediction(bestPrediction, transformParams);
+
+    // Render results on canvas
+    renderPrediction({
+      canvas,
+      source,
+      ...scaledPrediction,
+      width: transformParams.originalWidth,
+      height: transformParams.originalHeight,
+    });
+
+    // Schedule next frame processing
+    requestAnimationFrame(() => {
+      processImage(canvas, source, model);
+    });
+  });
+}
+```
+
+And finally we can put it all together in the `main` function:
+
+```ts
+async function main(): Promise<void> {
+  // Get DOM elements
+  const toggle = document.querySelector("button")!;
+  const video = document.querySelector("video")!;
+  const canvas = document.querySelector("canvas")!;
+  // Load YOLOv8 pose estimation model
+  const modelURL = "/yolov8n-pose_web_model/model.json";
+  const model = await loadGraphModel(modelURL);
+  let running = false;
+  toggle.addEventListener("click", async () => {
+    if (running) {
+      toggle.textContent = "Start";
+      stopVideo(video);
+    } else {
+      toggle.textContent = "Stop";
+      const { width, height } = video.getBoundingClientRect();
+      // Since we are not specifying the width and height of the canvas and video
+      // in the html, we need to manually override this attributes to configure
+      // the actual size of the canvas and video buffers
+      canvas.width = width;
+      canvas.height = height;
+      video.width = width;
+      video.height = height;
+      await startVideo({ video, width, height });
+      requestAnimationFrame(() => {
+        processImage(canvas, video, model);
+      });
+    }
+    running = !running;
+  });
+}
+
+// Start the application
+main();
+```
+
+Notice how we are setting the width and height of the canvas and video elements to the actual size of the video stream, this is because we are not specifying the width and height of the canvas and video elements in the html, so we need to manually override this attributes to configure the actual size of the canvas and video buffers.
+
+And that's it! We have created a live video stream with the model running in real-time.
+
+Remember to check the [live demo](https://isidrok.github.io/computer-vision-web/) and review the annotated final implementation in the [source repository](https://github.com/isidrok/computer-vision-web/blob/main/src/index.ts).
