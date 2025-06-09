@@ -88,7 +88,7 @@ const { isArticle = false } = Astro.props;
   .header {
     position: sticky;
     top: 0;
-    height: 4rem;
+    height: var(--header-height);
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -147,7 +147,7 @@ const { isArticle = false } = Astro.props;
 
   .progress {
     position: sticky;
-    top: 4rem;
+    top: var(--header-height);
     height: 2px;
     background: var(--color-fg-tertiary);
     z-index: 200;
