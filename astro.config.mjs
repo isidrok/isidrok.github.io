@@ -20,7 +20,7 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    remarkPlugins: [[remarkToc, { heading: "Table of Contents", maxDepth: 4 }]],
+    remarkPlugins: [[remarkToc, { heading: "Table of Contents", maxDepth: 2 }]],
     rehypePlugins: [
       rehypeSlug,
       [rehypeAutolinkHeadings, { behavior: "append" }],
