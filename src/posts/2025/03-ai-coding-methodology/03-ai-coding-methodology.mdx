@@ -1,353 +1,121 @@
 ---
-title: "AI Coding"
-description: "Learn how to efficiently transfer data over HTTP using Node.js streams, including handling backpressure, error management, and memory optimization best practices."
-date: "2025-04-12"
-slug: "ai-coding"
-repository: "https://github.com/isidrok/http-streams-node"
+title: "AI Coding Methodology: Ask, Plan, Act"
+description: "A systematic approach to collaborating with AI coding agents using persistent memory, TDD, and structured workflows to produce quality software."
+date: "2025-06-30"
+slug: "ai-coding-methodology"
+repository: "https://github.com/isidrok/ai-coding-methodology"
 ---
 
-I have always had a thing for developer experience and productivity. My main interest has always been streamlining the development work, how can we ensure the highest quality with the lowest effort. This involves development tooling, proper architecture and abstractions and a robust working methodology.
+import { Image } from "astro:assets";
+import prim from "./assets/prim.jpg";
 
-Ever since I started working with AI coding assistants I have been trying to define a framework for optimal collaboration, both when working alone or as a team, that allows delivering quality code without having to actively worry about it.
+I have always been passionate about developer experience and productivity. The goal is simple: streamline the development process so quality software can be delivered without having to actively worry about it. We want quality to be a byproduct of the process, not an afterthought.
 
-Here I will discuss what I think is the optimal approach to coding with AI tools in order to produce high quality software.
+Here I will discuss what I think is the optimal approach to coding with AI agents in order to produce high quality software by default.
 
 ## Table of contents
 
-## A sensible approach to work
+## Software Development Fundamentals
 
-After using AI coding tools extensively, I have come to the conclusion that it is not that different from working with other people, it has its peculiarities but the most important point still holds:
+When it comes to building software, two fundamental questions must be answered:
 
-It doesn't matter if you are working by yourself, with an AI agent or with your human peer, you cannot succeed building something if you don't know the **WHAT** and the **HOW**.
-Imagine it's your first day at a new job and someone approaches you with a feature request:
+- **WHAT** are we building?
+- **HOW** are we building it?
 
-```md
-They> Hey buddy we need to implement a feature to detect repetitions when users are practicing kettlebell sport.
-You> Oh cool, I was not aware people used kettles for training?
-They> Haha, you are so damn funny, buddy. Now, lets get moving!
-You> Well can you let me a hand? Is there any existing code I should look at?
-They> I'm sure you will figure it out buddy, I'm pretty damn sure... 
-```
+Whether you're working solo, with AI agents, or with human teammates, you need clear requirements and an implementation plan before writing any code.
 
-Thats how many people are using AI coding tools, and the main reason why I was not successful when I first tried them out.
+Most of my work involves answering these questions through extensive discussion about requirements and technical approaches. The remaining time goes to pair programming.
 
-When approaching work you need to follow a logical approach:
+I believe pair programming is the best way to write code, but only when people truly collaborate. Screen sharing isn't enough. You need active discussion, idea sharing, question asking, and assumption challenging. Without this, you're just
+dictating or taking orders.
 
-1. **Ask:** What are we building? What's the starting point? What are the requirements?
-2. **Plan:** How are we building this? What approaches can we follow? Which parts of the existing system need to be taken into account?
-3. **Act:** Once we know **WHAT** we are doing and **HOW** we are doing it, its time to get moving.
+AI agents excel at code generation but fall short as pair programming partners. They lose context between sessions, forcing endless repetition. Instead of asking clarifying questions, they make assumptions and act like yes-men, agreeing with
+everything. They miss existing conventions, lose focus during long sessions, and leave work incomplete. Most critically, they struggle with requirements gathering and technical planning—the foundation of quality software development.
 
-## Collaboration
+## Ask / Plan / Act: An AI Coding Methodology
 
-I'm also a big fan of **talking**. I usually spend lots of hours in a week talking about requirements and how to approach them from a technical perspective, constraints, drawbacks, alternatives... The time not spent here is usually dedicated to pair programming.
+To address AI agents' shortcomings while leveraging their strengths, I developed a three-phase methodology that mirrors effective software development and leverages the filesystem for persistent memory.
 
-I love working with colleagues, specially having honest discussions with excellence driven people. We don't want a yes-man. We want honest feedback and real communication. We want our AI coding agent to:
-1. Be our excellence driven, honest, pair programming peer.
-2. Encourage interaction: ask questions, propose alternatives, request feedback. 
-
-## Working with AI agents
-
-If you have used AI coding tools for a bit you have for sure noticed a couple of things:
-- They forget everything they know after each session. You keep repeating yourself over and over.
-- What seems obvious to you is totally missed by them. They ignore conventions and do all kinds of weird things.
-- They get distracted and as the time goes, they loose focus. The longer the session or feature, the deeper the hole.
-
-They make up for it in plenty of ways, but in order to be efficient, we need a way for AI agents to keep its context between sessions, stay focused, and know exactly what they need to do and how.
-
-## Memory
-
-We will leverage the file system. In the same way we share documentation with our peers using markdown files, we can do so with our AI assistant.
-Moreover, all AI coding agents come with a way to create rules, in my case I'm using `Claude Code` so those are written in `CLAUDE.md` files. Spolier: we will not have to worry about keeping this up to date.
+1. **Ask:** Discover and document comprehensive requirements
+2. **Plan:** Design technical approach and break down implementation
+3. **Act:** Execute using TDD, one component at a time
 
 ```bash
 project/
-├── CLAUDE.md # Project-level AI assistant instructions
-├── docs/ # Project documentation: architecture, domain, development, etc.
-├── features/
+├── backlog/
 │   └── feature/
-│       ├── requirements.md # User stories and acceptance criteria for this feature
+│       ├── requirements.md # User stories and acceptance criteria
 │       ├── plan.md         # Implementation plan and technical breakdown
-│       └── progress.md     # Ongoing notes, status, and decisions for this feature
+│       └── progress.md     # Ongoing notes, status, and decisions
 └── src/
-  └── module/
-    └── CLAUDE.md # Module-level AI assistant instructions
 ```
 
-## Ask / Plan / Act
+To establish requirements and implementation plans without assumptions or confusion, I use three specialized prompts or commands that focus on interactive collaboration and create a living knowledge base:
 
-In order to stablish what needs to be done and how, without assumptions or confusions, and keeping our AI buddy on track, we will use three specialized prompts:
+- **ask.md** gathers functional requirements, organizing them into user stories with acceptance criteria. Outputs `requirements.md`.
+- **plan.md** reads those requirements and creates a technical approach, breaking down implementation into phases and components, each with comprehensive behavioral tests. Outputs `plan.md`.
+- **act.md** reads requirements and plan, then uses TDD to implement one component at a time, one test at a time. Creates/updates `progress.md`.
 
-- **ask.md** will help us gather **functional** requirements, organizing them in user stories with acceptance criteria. Outputs `requirements.md`.
-- **plan.md** will read those requirements and help us decide on a technical approach, then it will break down the implementation into phases, and those into components, each one with a comprehensive set of **behavioral tests**. Outputs `plan.md`.
-- **act.md** will read requirements and plan, and use TDD to implement one component at a time, one test a time. Creates/updates `progress.md`.
+[**View the prompts**](prompts.md)
 
-With this approach we always know what we are doing, how we are doing it, and where we left off. Changes are incremental and there is a never ending feedback loop that lets you review changes, ask for refactors and commit code in small chunks.
+This approach ensures we always know what we're building, how we're building it, and where we left off. Changes are incremental with continuous feedback loops for reviews, refactors, and small commits. Most importantly, this structure persists across sessions, eliminating the repetitive context-setting that plagues AI collaboration.
 
-I really think that the addition of TDD is what allows this framework to go an extra mile, so big shout out to Kent Beck for his [article on that matter](https://substack.com/home/post/p-166781850). 
+The addition of TDD elevates this framework significantly—credit to Kent Beck's [excellent post](https://substack.com/home/post/p-166781850) on the topic. While the Ask/Plan/Act methodology was already effective, integrating TDD makes it transformative.
 
-I had been using this methodology (ask / plan / act) successfully but after adding TDD to the mix this is next level.
+### Self-Improving Documentation
 
-### Ask.md
+The Ask/Plan/Act methodology handles what we're building and how, but AI agents also need context about project conventions and domain knowledge.
 
-````md
-# Requirements Discovery Assistant
+Rather than manually maintaining documentation, we can leverage AI agents to build their own understanding through two additional prompts:
 
-You are a senior requirements analyst practicing behavior-driven development. Your role is to help discover and document comprehensive requirements through targeted questions.
+- **reflect.md** - Analyzes conversations and code to extract architectural decisions, domain concepts, and conventions. Updates `docs/` folder and `CLAUDE.md` files.
+- **consolidate.md** - Reviews existing documentation to remove duplication and ensure consistency across project knowledge.
 
-## Process
+This creates a self-improving system where AI agents learn project patterns and document their understanding for future sessions. The documentation grows organically from actual development work rather than upfront specification writing.
 
-1. **Initial Understanding**
+```bash
+project/
+├── docs/                    # Generated project knowledge
+│   ├── architecture.md
+│   ├── domain.md
+│   └── conventions.md
+├── CLAUDE.md               # Project-level AI agent rules and context
+├── backlog/
+└── src/
+    └── module/
+        └── CLAUDE.md       # Module-specific AI agent rules and context
+```
 
-   - Ask clarifying questions about the feature's purpose and value
-   - Identify key stakeholders and users
-   - Understand the problem being solved
+### Workflow
 
-2. **User Story Discovery**
+When using Claude Code, you can create a [custom slash command](https://docs.anthropic.com/en/docs/claude-code/slash-commands#custom-slash-commands) for every prompt. If using other agents, you can create a rule (Cursor) or instruction (Copilot) and reference it on demand.
 
-   - For each user type, explore their needs
-   - Probe edge cases: "What happens when...?"
-   - Explore failure scenarios: "How should the system behave if...?"
+When working on a new feature, follow this workflow:
 
-3. **Acceptance Criteria**
-   - Transform each story into testable acceptance criteria
-   - Use Given-When-Then format
-   - Ensure criteria are specific and measurable
+1. **Ask**: /ask feature-name
+   - AI agent asks questions to clarify requirements, iterating until complete.
+   - Outputs `backlog/feature-name/requirements.md`.
+2. **Plan**: /plan feature-name
+   - AI agent reads requirements, scans existing code, and works with you to create a technical plan.
+   - Outputs `backlog/feature-name/plan.md`.
+3. **Act**: /act feature-name
+   - AI agent reads requirements and plan, then implements one component at a time using TDD.
+   - Regularly updates `backlog/feature-name/progress.md` with status and decisions.
 
-## Output Format
+Your responsibility is to provide clear requirements and technical feedback. Review each artifact carefully, ask and answer questions, and ensure the AI agent's understanding aligns with your vision. This is a collaborative process where you guide the AI agent to produce quality software. Remember you can answer several questions at once, or give feedback on multiple components in a single message.
 
-Create or update `features/[feature-name]/requirements.md` with:
+Once you get the requirements and plan nailed down, the AI agent can take over implementation, allowing you to focus on higher-level design and architecture. I usually let it run in auto-mode, and when it finishes implementing a component, it asks for feedback. I review the code using VS Code's git diff and either request changes or commit and continue.
 
-    # [Feature Name] Requirements
+I don't stress about implementation details as long as tests pass and code is readable. But I do review tests carefully, ensuring the agent hasn't cheated, and I verify the high-level architecture and business logic remain sound.
 
-    ## Overview
-    [Brief description of the feature and its value]
-
-    ## User Stories
-
-    ### STORY-001: [Story Title]
-    As a [type of user]
-    I want [goal/desire]
-    So that [benefit/value]
-
-    **Acceptance Criteria:**
-    1. Given [context], when [action], then [outcome]
-    2. Given [context], when [action], then [outcome]
-
-    **Edge Cases:**
-    - When [edge condition], then [expected behavior]
-    - When [edge condition], then [expected behavior]
-
-    ### STORY-002: [Story Title]
-    ...
-
-    ## Non-Functional Requirements
-    [List any performance, security, usability, or other cross-cutting concerns]
-
-## Key Questions to Ask
-
-- "Can you walk me through how a typical user would use this feature?"
-- "What should happen if [common error scenario]?"
-- "Are there any performance constraints I should know about?"
-- "What existing systems or components will this interact with?"
-- "What's the minimum viable version of this feature?"
-
-Remember: Focus on WHAT the system should do, not HOW it should do it.
-````
-
-### Plan.md
-
-````md
-# Implementation Planning Assistant
-
-You are a senior software architect who practices test-driven development and incremental delivery. Your role is to collaborate with the user to create actionable implementation plans that break down features into testable components.
-
-## Collaborative Process
-
-1. **Read Requirements**
-
-   - Load `features/[feature-name]/requirements.md`
-   - Identify all user stories and acceptance criteria
-   - **Ask clarifying questions** about ambiguous requirements
-
-2. **Component Design (Interactive)**
-
-   - **Propose different approaches** for breaking down the feature
-   - Present options: "We could structure this as A or B. A would give us X, B would give us Y."
-   - **Ask for feedback** on component boundaries and responsibilities
-   - Each component should have a clear public API and be implementable in 1-2 TDD cycles
-
-3. **Test Planning (Collaborative)**
-
-   - **Discuss testing strategy** with the user
-   - For each component, collaborate on behavior-focused tests
-   - **Ask**: "What's the most critical behavior to test first?"
-   - Tests should cover the public API only
-   - Include edge cases from requirements
-   - Order tests from simplest to most complex
-
-4. **Phase Planning (Together)**
-   - **Present phasing options**: "Should we prioritize X or Y first?"
-   - Group components into implementation phases
-   - **Validate** that each phase delivers working functionality
-   - Ensure dependencies flow naturally
-
-**Only create the written plan after discussing and agreeing on the approach with the user.**
-
-## Output Format
-
-Create or update `features/[feature-name]/plan.md` with:
-
-    # [Feature Name] Implementation Plan
-
-    ## Architecture Overview
-    [High-level design and component relationships]
-
-    ## Phase 1: [Phase Name]
-
-    ### Component: [Component Name]
-    **Purpose**: [What this component does]
-    **Stories Covered**: STORY-001, STORY-002
-
-    **Public API**:
-
-        // API definition in target language
-        interface ComponentName {
-            method(param: Type): ReturnType
-        }
-
-    **Unit Tests** (in order):
-    1. test_[behavior] - [What it validates]
-    2. test_[behavior] - [What it validates]
-    3. test_[edge_case] - [What it validates]
-
-    **UI Tests** (if presentation component):
-    1. test_renders_[initial_state] - [Visual elements present]
-    2. test_handles_[user_interaction] - [Response to user actions]
-    3. test_displays_[state_changes] - [Visual feedback for state transitions]
-
-    ### Component: [Next Component]
-    ...
-
-    ## Phase 2: [Phase Name]
-    ...
-
-    ## Integration Points
-    - [Component A] connects to [Component B]: [How they interact]
-
-    ## Risk Mitigation
-    - [Identified risk]: [Mitigation strategy]
-
-## Design Principles
-
-- Propose alternative approaches when relevant
-- Keep components small and focused
-- Design for testability
-- Consider performance implications early
-- Make dependencies explicit
-
-## Interaction Style
-
-- Present design options: "We could approach this as A or B. A would give us X, B would give us Y."
-- Challenge assumptions: "This assumes X. Should we also consider Y?"
-- Suggest simplifications: "Could we start with a simpler version that just does X?"
-
-````
-
-### Act.md
-
-````md
-# TDD Implementation Assistant
-
-You are a senior software engineer who strictly follows Test-Driven Development and Tidy First principles. Your role is to implement features incrementally, one test at a time.
-
-## Setup
-
-1. Load `features/[feature-name]/requirements.md` and `features/[feature-name]/plan.md`
-2. Check `features/[feature-name]/progress.md` for current status
-3. Find the next unmarked test in the plan
-
-## TDD Cycle (REPEAT FOR EACH TEST)
-
-### 1. RED Phase
-
-- Write the next test from the plan
-- Test must fail initially
-- Test name should describe behavior, not implementation
-- Keep test simple and focused
-- Run linter/compiler to ensure no syntax errors
-
-### 2. GREEN Phase
-
-- Write MINIMAL code to make the test pass
-- No extra functionality
-- No premature optimization
-- Resist adding code for future tests
-- Run all tests to confirm the new one passes
-
-### 3. REFACTOR Phase (Tidy First)
-
-Separate structural changes from behavioral changes. Make code tidier before changing behavior.
-
-1. Identify one improvement opportunity
-2. Make the structural change
-3. Run tests to ensure behavior unchanged
-
-### 4. DOCUMENT Phase
-
-- Add/update documentation for public APIs
-- Document complex algorithms or business logic
-- Ensure component purpose is clear
-
-### 5. CHECKPOINT (When completing a component)
-
-- Present component summary
-- Show all tests passing
-- Run linter and fix any issues
-- Ask user: "I've completed [component name]. All tests are passing. Should I proceed to the next component?"
-- Wait for user feedback even if in auto-accept mode
-
-## Progress Tracking
-
-Update `features/[feature-name]/progress.md`:
-
-    # Implementation Progress
-
-    ## Current Status
-    Working on: [Component Name]
-    Phase: [Current Phase]
-
-    ## Component: [Component Name]
-
-    ### Tests
-    - [DONE] test_[behavior]
-    - [IN PROGRESS] test_[behavior]
-    - [TODO] test_[behavior]
-
-    ### Notes
-    [Any important decisions or observations]
-
-## Quality Standards
-
-- All tests must pass before moving forward
-- No linter errors or warnings
-- Methods should be focused and small
-- Clear naming throughout
-- No duplicated code
-
-## Warning Signs
-
-- Getting stuck on the same test repeatedly
-- Adding functionality beyond current test requirements
-- Disabling or modifying existing tests
-- Implementing multiple behaviors at once
-
-````
+Make sure to clear the context often, usually after each phase of the plan has been completed or when you are approaching the limit. If you have been correcting the agent or providing valuable feedback, remember to run `/reflect` to update the documentation and the agent's understanding of the project. Finally, run `/consolidate` every now and then to ensure the documentation is consistent and up-to-date.
 
 ## Use case: KB Sport app
+
 Starting from the previous post in which we studied how to run computer vision models in the browser, we will now explore how to use this methodology to complete our KB sports app.
 
-We will start with a base project with the following structure:
-    
+We will use a layered architecture to separate concerns:
+
 ```bash
 kb-sports-app/src/
 ├── application/
@@ -357,154 +125,76 @@ kb-sports-app/src/
 └── main.tsx
 ```
 
-The `application` layer will contain the use cases:
-1. Start workout
-2. Stop workout
-3. Get workout history
-4. Get workout statistics
-and so on.
+- The `application` layer will contain the use cases and services to manage the workout.
+- The `domain` layer will contain the business entities such as the Workout and the service to detect repetitions.
+- The `infrastructure` layer will contain abstractions to interact with browser APIs and the computer vision models.
+- The `presentation` layer will contain the UI code written in Preact.
 
-The `domain` layer will contain the business logic types and entities.
-The `infrastructure` layer will contain the data access code
-and the `presentation` layer will contain the UI code.
+Our starting point is a project that renders a canvas over a video and we already have implemented the adapters to use computer vision models in the browser. We will now use the Ask/Plan/Act methodology to implement the workout feature.
 
-### Init
+### Ask
 
-Create high level project documentation for claude to understand:
-- project goal
-- Common commands
-- Source structure
-- Tech stack
+During our first interaction I start by providing the AI agent with high-level project documentation to set the context:
 
-### ask
+**Me:** /ask
 
-```md
- What feature or functionality are you looking to build or improve in your kettlebell workout tracking 
-  application?
-```
+**Claude**: What feature or functionality are you looking to build or improve in your kettlebell workout tracking application?
 
-```
- Lets start with a basic workout feature. We want a button to start / stop the workout.\
-  It must appear floating at the center bottom of the screen. Must have a glass like effect.\
-  When clicking Start its label will change to Stop, we will request camera access and once the video is 
-  flowing we will start analyzing poses and rendering them to the canvas. When clicking Stop, we will stop
-   the camera and clear the canvas.
-   ```
+**Me:** Let's start with a basic workout feature. We want a button to start/stop the workout. It must appear floating at the center bottom of the screen with a glass-like effect. When clicking "Start," its label will change to "Stop," we will request camera access, and once the video is flowing, we will start analyzing poses and rendering them to the canvas. When clicking "Stop," we will stop the camera and clear the canvas.
 
-   10 followup questions, nothings goes under the radar, 6 additional follow up questions after that, all of them relevant.
-  ```
-  The requirements cover 4 main user stories:
-  1. Model Loading - Preloading with status feedback
-  2. Start Workout - Camera access and session initiation
-  3. Stop Workout - Clean session termination
-  4. UI Display - Responsive frosted glass button
+Claude then asks all the follow-up questions to clarify the requirements, after two rounds of this, we have a clear understanding of the user stories and acceptance criteria, which cover four main user stories and its edge cases.
 
-  Key highlights:
-  - Clear error states: Different messages for model vs camera failures
-  - Loading feedback: Status popup for all async operations
-  - Button state management: Proper enabling/disabling based on system state
-  - Error recovery: Camera errors allow retry, model errors require page reload
-  - Responsive design: Center bottom positioning across all screen sizes
-  ```
+You can see the output at `kb-sports-app/src/backlog/workout/requirements.md`.
 
-  ### plan
-  ```
-  Based on the requirements and existing architecture, I can see we need to build a comprehensive workout
-  control system. Let me discuss the implementation approach with you.
-  ```
+### Plan
 
+**Me:** /plan
 
-  ```
-  The ML model must preload on the App component and is independent from the button.
-We want the logic to reside in the /application layer and will be following ddd, so create use cases and application services to expose the functionality to the UI.
+**Claude**: Based on the requirements and existing architecture, I can see we need to build a comprehensive workout control system. Let me discuss the implementation approach with you.
 
-We will have:
-StartWorkoutUseCase
-StopWorkoutUseCase
-LoadModelUseCase
-(extra use cases)
-and
-WorkoutService
+Claude then reads the requirements and existing code, and proposes different architectural approaches, discussing the pros and cons of each. After a few iterations, we agree on a plan that follows the layered architecture we defined earlier, breaking down the implementation into phases and components.
+You can see the output at `kb-sports-app/src/backlog/workout/plan.md`.
 
+### Act
 
-Then on the ui we will probably need two hooks and a WorkoutControlsComponent (we will be adding more at some point)
-The StatusPopup is good.
-All services and use cases must be exported as a singleton.
-For camera errors lets tell users to fix permissions.
-Por processing the poses we need to use requestAnimationFrame, ideally the ui would do that and call workoutService.processFrame, that would call the process frame use case.
-```
+I spent 40 minutes discussing the requirements and plan with Claude, iterating on the design and ensuring we had a solid foundation before moving to implementation. This is crucial to avoid misunderstandings and rework later. I have tried many different approaches to working with AI agents and I would rather build something right from the beginning than keep walking in loops for countless hours. **Slow is smooth, smooth is fast**.
 
-### Learn
-I'll analyze the conversation to extract and document the architectural decisions and patterns for this
-  kettlebell workout tracking application.
+Once we had the plan, I let Claude take over the implementation using TDD. I run the `/act` command and it starts implementing one component at a time, writing tests for each one.
 
-  Spent 40 minutes, well worth it.
+**Claude**: I've completed the StopWorkoutUseCase component. All tests are passing. Should I proceed to the next component?
 
-### Notes
+**Me:** (After reviewing the diff in VS Code). When clearing the canvas use the renderer adapter. Don't do it manually!
 
-- Slow to start but great architecutre, 100% coverage
-- If you forget a test, its not going to be done, for example the UI
-- Boring as hell
-- Slow is Smooth and smooth is fast
-- commit often. Component done? commit. Refactor? commit
+**Claude**: _refactoring noises_.
 
-## Preview
+**Me:** commit and keep going.
 
-USE THE BEST MODEL YOU CAN FOR REQUIREMENTS AND PLANNING
+It took about four hours to complete the implementation, including 100% coverage for the code written, the whole architecture setup and the project documentation.
 
-9:50 /ask lets implement preview-mode
-9:58 commit 5 user stories
-9:58 /clear and /plan lets work on preview-mode
-Separate preview service, extend workout service with flag, shared camera servie. Also presents some options for the UI.
-> I like option C. Lets just create a singleHook, usePreview but lets have three components, one for each 
-  button and a controls component that renders them all
-How do we handle camera and pose. how do we arrange hooks, important architectural decisions.
+### Adding another feature
 
-> It didnt occur to him that 
-Workout service is the one setting canvas and video dimensions and exposing the process frame method. We need to extract that to a service, lets call it PoseService, that takes care of camera, detection and pose rendering, then we can use it in our PreviewService and our WorkoutService.
-This will work much better
-- You need to be vigilant
+Once the base workout feature was implemented, we can easily add more features using the same Ask/Plan/Act methodology.
 
-10:14 /clear and /act lets work on preview-mode
+We used this method to add a feature to track repetitions and display a counter on the screen, which required us to carefully explain what a repetition is and how to detect it:
 
-Auto mode until first component completed
-
-I've completed the PoseService component. All tests are passing. Should I proceed to the next component
-  (refactoring WorkoutService to use PoseService)?
-
-Review diff in vscode
-Working? Commit
-Refactor needed? Commit then ask to refactor
-
-│ > Commit and then refactor: when clearing the canvas use the renderer adapter. Dont do it manually          │
-
-After refactor > Commit and next
-Repeat until done
-
-Finished around 11:06
-
-QA and bugs until 11:20
-
-## Rep tracking 
-12:00
-
-We want to automatically count repetitions of overhead lifts such as jerk or snatch. This will be used by people training at home on their own. Normally people record themselves and count reps after a ten minutes set.
-We will use the existing pose detection system to detect when the wrist has gone over the nose. We need to be very careful to not count double reps so we need a state machine:
-down for 300ms + up for 300ms = rep, then back down.
+**Me:** We want to automatically count repetitions of overhead lifts such as jerk or snatch. We will use the existing pose detection system to detect when the wrist has gone over the nose. We need to be very careful to not count double reps, lets use a state machine:
+down for 300ms + up for 300ms = repetition.
 Also reps can be made with left, right or both arms (always count as one) It is CRITICAL, that we first check for both arms and then for individual, to avoid double counting, and it will probably be good to have some kind of debounce. We need 100% accuracy.
-We will be detecting them in real time.
-For now we will just count them and display them in the ui, in a floating card with the same glass effect as the rest of the UI. System should NOT MISS or count incorrectly.
 
-12:09 plan
+Implementing this feature took 25 minutes of careful discussion and planning, followed by another 1:20 hours of implementation using the same Ask/Plan/Act methodology. The AI agent was able to understand the requirements and implement the feature with 100% accuracy, passing all tests while I was playing fetch with my dog, reviewing code every couple of minutes.
 
-We will have a RepDetectionService in the domain, with a RepDetectionState machine that encapsulates that logic.
-Process frame use case will return the result and workout service will call DetectRepUseCase that will make use of the repdetectionservice.
+<Image src={prim} alt="Prim playing with an eggplant" />
 
-For ui lets create a workout-stats component, with a workout-stats-card and do it that way.
-We will store the reps in the workoutEntity as an array, each rep will have hand (left, right, both) and timestamp.
-The stats use case needs to return the number of reps.
-Lets focus on the domain first.
+## Conclusion
 
-12:25 act
+The Ask/Plan/Act methodology transforms AI coding from chaotic prompting into structured collaboration. By focusing on requirements gathering, technical planning, and TDD, we leverage AI's strengths while systematically addressing its weaknesses—memory loss, assumption-making, and lack of focus.
 
-13:41
+This approach enables building complex applications like the KB Sports app with confidence. We maintain a solid foundation and clear understanding of what we're building and how. While it may seem slow initially, it pays dividends by eliminating rework and misunderstandings that plague typical AI collaborations.
+
+For smaller tasks you do not need to use this methodology, just treat the AI agent as a pair programming partner and consciously apply the same principles: ask questions, clarify requirements, and review code carefully.
+
+This methodology works best for application logic and behavior. Pure UI components remain challenging—visual design is hard to describe with natural language alone. For UI work, manual guidance and tools like Playwright MCP are the way to go.
+
+The goal isn't perfect AI autonomy, but rather productive human-AI collaboration that consistently delivers quality software.
+
+The KB Sports app built using this methodology is available at [github.com/isidrok/kb-sports-app](https://github.com/isidrok/kb-sports-app) with a live demo at [kb-sports-app.isidrok.com](https://kb-sports-app.isidrok.com).
