@@ -3,7 +3,7 @@ title: "AI Coding Methodology: Ask, Plan, Act"
 description: "A systematic approach to collaborating with AI coding agents using persistent memory, TDD, and structured workflows to produce quality software."
 date: "2025-06-30"
 slug: "ai-coding-methodology"
-repository: "https://github.com/isidrok/ai-coding-methodology"
+repository: "https://github.com/isidrok/ask-plan-act"
 ---
 
 import { Image } from "astro:assets";
@@ -26,8 +26,7 @@ Whether you're working solo, with AI agents, or with human teammates, you need c
 
 Most of my work involves answering these questions through extensive discussion about requirements and technical approaches. The remaining time goes to pair programming.
 
-I believe pair programming is the best way to write code, but only when people truly collaborate. Screen sharing isn't enough. You need active discussion, idea sharing, question asking, and assumption challenging. Without this, you're just
-dictating or taking orders.
+I believe pair programming is the best way to write code, but only when people truly collaborate. Screen sharing isn't enough. You need active discussion, idea sharing, question asking, and assumption challenging. Without this, you're just dictating or taking orders.
 
 AI agents excel at code generation but fall short as pair programming partners. They lose context between sessions, forcing endless repetition. Instead of asking clarifying questions, they make assumptions and act like yes-men, agreeing with
 everything. They miss existing conventions, lose focus during long sessions, and leave work incomplete. Most critically, they struggle with requirements gathering and technical planning—the foundation of quality software development.
@@ -56,7 +55,7 @@ To establish requirements and implementation plans without assumptions or confus
 - **plan.md** reads those requirements and creates a technical approach, breaking down implementation into phases and components, each with comprehensive behavioral tests. Outputs `plan.md`.
 - **act.md** reads requirements and plan, then uses TDD to implement one component at a time, one test at a time. Creates/updates `progress.md`.
 
-[**View the prompts**](prompts.md)
+[**View the prompts**](https://github.com/isidrok/ask-plan-act/tree/main/prompts)
 
 This approach ensures we always know what we're building, how we're building it, and where we left off. Changes are incremental with continuous feedback loops for reviews, refactors, and small commits. Most importantly, this structure persists across sessions, eliminating the repetitive context-setting that plagues AI collaboration.
 
@@ -144,8 +143,6 @@ During our first interaction I start by providing the AI agent with high-level p
 
 Claude then asks all the follow-up questions to clarify the requirements, after two rounds of this, we have a clear understanding of the user stories and acceptance criteria, which cover four main user stories and its edge cases.
 
-You can see the output at `kb-sports-app/src/backlog/workout/requirements.md`.
-
 ### Plan
 
 **Me:** /plan
@@ -153,23 +150,24 @@ You can see the output at `kb-sports-app/src/backlog/workout/requirements.md`.
 **Claude**: Based on the requirements and existing architecture, I can see we need to build a comprehensive workout control system. Let me discuss the implementation approach with you.
 
 Claude then reads the requirements and existing code, and proposes different architectural approaches, discussing the pros and cons of each. After a few iterations, we agree on a plan that follows the layered architecture we defined earlier, breaking down the implementation into phases and components.
-You can see the output at `kb-sports-app/src/backlog/workout/plan.md`.
 
 ### Act
 
-I spent 40 minutes discussing the requirements and plan with Claude, iterating on the design and ensuring we had a solid foundation before moving to implementation. This is crucial to avoid misunderstandings and rework later. I have tried many different approaches to working with AI agents and I would rather build something right from the beginning than keep walking in loops for countless hours. **Slow is smooth, smooth is fast**.
+I spent 40 minutes discussing the requirements and plan with Claude, iterating on the design and ensuring we had a solid foundation before moving to implementation. This is crucial to avoid misunderstandings and rework later. I have tried many different approaches to working with AI agents and I would rather build something right from the beginning than keep walking in loops for countless hours. Slow is smooth, smooth is fast.
 
 Once we had the plan, I let Claude take over the implementation using TDD. I run the `/act` command and it starts implementing one component at a time, writing tests for each one.
 
 **Claude**: I've completed the StopWorkoutUseCase component. All tests are passing. Should I proceed to the next component?
 
-**Me:** (After reviewing the diff in VS Code). When clearing the canvas use the renderer adapter. Don't do it manually!
+**Me:** When clearing the canvas use the renderer adapter. Don't do it manually!
 
 **Claude**: _refactoring noises_.
 
-**Me:** commit and keep going.
+**Me:** Commit and keep going.
 
 It took about four hours to complete the implementation, including 100% coverage for the code written, the whole architecture setup and the project documentation.
+
+Checkout the code and all generated artifacts in the [KB Sport app repository](https://github.com/isidrok/kb-sport-app/tree/main/backlog/.archive)
 
 ### Adding another feature
 
@@ -181,7 +179,7 @@ We used this method to add a feature to track repetitions and display a counter 
 down for 300ms + up for 300ms = repetition.
 Also reps can be made with left, right or both arms (always count as one) It is CRITICAL, that we first check for both arms and then for individual, to avoid double counting, and it will probably be good to have some kind of debounce. We need 100% accuracy.
 
-Implementing this feature took 25 minutes of careful discussion and planning, followed by another 1:20 hours of implementation using the same Ask/Plan/Act methodology. The AI agent was able to understand the requirements and implement the feature with 100% accuracy, passing all tests while I was playing fetch with my dog, reviewing code every couple of minutes.
+Implementing this feature took 25 minutes of careful discussion and planning, followed by another 1:20 hours of implementation using the same Ask/Plan/Act methodology. The AI agent was able to understand the requirements and implement the feature with 100% accuracy, passing all tests while I was playing fetch with Prim, reviewing code every couple of minutes.
 
 <Image src={prim} alt="Prim playing with an eggplant" />
 
@@ -189,7 +187,7 @@ Implementing this feature took 25 minutes of careful discussion and planning, fo
 
 The Ask/Plan/Act methodology transforms AI coding from chaotic prompting into structured collaboration. By focusing on requirements gathering, technical planning, and TDD, we leverage AI's strengths while systematically addressing its weaknesses—memory loss, assumption-making, and lack of focus.
 
-This approach enables building complex applications like the KB Sports app with confidence. We maintain a solid foundation and clear understanding of what we're building and how. While it may seem slow initially, it pays dividends by eliminating rework and misunderstandings that plague typical AI collaborations.
+This approach enables building complex applications like the KB Sport app with confidence. We maintain a solid foundation and clear understanding of what we're building and how. While it may seem slow initially, it pays dividends by eliminating rework and misunderstandings that plague typical AI collaborations.
 
 For smaller tasks you do not need to use this methodology, just treat the AI agent as a pair programming partner and consciously apply the same principles: ask questions, clarify requirements, and review code carefully.
 
@@ -197,4 +195,4 @@ This methodology works best for application logic and behavior. Pure UI componen
 
 The goal isn't perfect AI autonomy, but rather productive human-AI collaboration that consistently delivers quality software.
 
-The KB Sports app built using this methodology is available at [github.com/isidrok/kb-sports-app](https://github.com/isidrok/kb-sports-app) with a live demo at [kb-sports-app.isidrok.com](https://kb-sports-app.isidrok.com).
+The KB Sport app built using this methodology is available at [https://github.com/isidrok/kb-sports-app](https://github.com/isidrok/kb-sport-app). Try it out at [https://isidrok.github.io/kb-sport-app/](https://isidrok.github.io/kb-sport-app/).
