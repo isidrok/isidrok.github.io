@@ -1,0 +1,198 @@
+---
+title: "AI Coding Methodology: Ask, Plan, Act"
+description: "A systematic approach to collaborating with AI coding agents using persistent memory, TDD, and structured workflows to produce quality software."
+date: "2025-06-30"
+slug: "ai-coding-methodology"
+repository: "https://github.com/isidrok/ask-plan-act"
+---
+
+import { Image } from "astro:assets";
+import prim from "./assets/prim.jpg";
+
+I have always been passionate about developer experience and productivity. The goal is simple: streamline the development process so quality software can be delivered without having to actively worry about it. We want quality to be a byproduct of the process, not an afterthought.
+
+Here I will discuss what I think is the optimal approach to coding with AI agents in order to produce high quality software by default.
+
+## Table of contents
+
+## Software Development Fundamentals
+
+When it comes to building software, two fundamental questions must be answered:
+
+- **WHAT** are we building?
+- **HOW** are we building it?
+
+Whether you're working solo, with AI agents, or with human teammates, you need clear requirements and an implementation plan before writing any code.
+
+Most of my work involves answering these questions through extensive discussion about requirements and technical approaches. The remaining time goes to pair programming.
+
+I believe pair programming is the best way to write code, but only when people truly collaborate. Screen sharing isn't enough. You need active discussion, idea sharing, question asking, and assumption challenging. Without this, you're just dictating or taking orders.
+
+AI agents excel at code generation but fall short as pair programming partners. They lose context between sessions, forcing endless repetition. Instead of asking clarifying questions, they make assumptions and act like yes-men, agreeing with
+everything. They miss existing conventions, lose focus during long sessions, and leave work incomplete. Most critically, they struggle with requirements gathering and technical planning—the foundation of quality software development.
+
+## Ask / Plan / Act: An AI Coding Methodology
+
+To address AI agents' shortcomings while leveraging their strengths, I developed a three-phase methodology that mirrors effective software development and leverages the filesystem for persistent memory.
+
+1. **Ask:** Discover and document comprehensive requirements
+2. **Plan:** Design technical approach and break down implementation
+3. **Act:** Execute using TDD, one component at a time
+
+```bash
+project/
+├── backlog/
+│   └── feature/
+│       ├── requirements.md # User stories and acceptance criteria
+│       ├── plan.md         # Implementation plan and technical breakdown
+│       └── progress.md     # Ongoing notes, status, and decisions
+└── src/
+```
+
+To establish requirements and implementation plans without assumptions or confusion, I use three specialized prompts or commands that focus on interactive collaboration and create a living knowledge base:
+
+- **ask.md** gathers functional requirements, organizing them into user stories with acceptance criteria. Outputs `requirements.md`.
+- **plan.md** reads those requirements and creates a technical approach, breaking down implementation into phases and components, each with comprehensive behavioral tests. Outputs `plan.md`.
+- **act.md** reads requirements and plan, then uses TDD to implement one component at a time, one test at a time. Creates/updates `progress.md`.
+
+[**View the prompts**](https://github.com/isidrok/ask-plan-act/tree/main/prompts)
+
+This approach ensures we always know what we're building, how we're building it, and where we left off. Changes are incremental with continuous feedback loops for reviews, refactors, and small commits. Most importantly, this structure persists across sessions, eliminating the repetitive context-setting that plagues AI collaboration.
+
+The addition of TDD elevates this framework significantly—credit to Kent Beck's [excellent post](https://substack.com/home/post/p-166781850) on the topic. While the Ask/Plan/Act methodology was already effective, integrating TDD makes it transformative.
+
+### Self-Improving Documentation
+
+The Ask/Plan/Act methodology handles what we're building and how, but AI agents also need context about project conventions and domain knowledge.
+
+Rather than manually maintaining documentation, we can leverage AI agents to build their own understanding through two additional prompts:
+
+- **reflect.md** - Analyzes conversations and code to extract architectural decisions, domain concepts, and conventions. Updates `docs/` folder and `CLAUDE.md` files.
+- **consolidate.md** - Reviews existing documentation to remove duplication and ensure consistency across project knowledge.
+
+This creates a self-improving system where AI agents learn project patterns and document their understanding for future sessions. The documentation grows organically from actual development work rather than upfront specification writing.
+
+```bash
+project/
+├── docs/                    # Generated project knowledge
+│   ├── architecture.md
+│   ├── domain.md
+│   └── conventions.md
+├── CLAUDE.md               # Project-level AI agent rules and context
+├── backlog/
+└── src/
+    └── module/
+        └── CLAUDE.md       # Module-specific AI agent rules and context
+```
+
+### Workflow
+
+When using Claude Code, you can create a [custom slash command](https://docs.anthropic.com/en/docs/claude-code/slash-commands#custom-slash-commands) for every prompt. If using other agents, you can create a rule (Cursor) or instruction (Copilot) and reference it on demand.
+
+When working on a new feature, follow this workflow:
+
+1. **Ask**: /ask feature-name
+   - AI agent asks questions to clarify requirements, iterating until complete.
+   - Outputs `backlog/feature-name/requirements.md`.
+2. **Plan**: /plan feature-name
+   - AI agent reads requirements, scans existing code, and works with you to create a technical plan.
+   - Outputs `backlog/feature-name/plan.md`.
+3. **Act**: /act feature-name
+   - AI agent reads requirements and plan, then implements one component at a time using TDD.
+   - Regularly updates `backlog/feature-name/progress.md` with status and decisions.
+
+Your responsibility is to provide clear requirements and technical feedback. Review each artifact carefully, ask and answer questions, and ensure the AI agent's understanding aligns with your vision. This is a collaborative process where you guide the AI agent to produce quality software. Remember you can answer several questions at once, or give feedback on multiple components in a single message.
+
+Once you get the requirements and plan nailed down, the AI agent can take over implementation, allowing you to focus on higher-level design and architecture. I usually let it run in auto-mode, and when it finishes implementing a component, it asks for feedback. I review the code using VS Code's git diff and either request changes or commit and continue.
+
+I don't stress about implementation details as long as tests pass and code is readable. But I do review tests carefully, ensuring the agent hasn't cheated, and I verify the high-level architecture and business logic remain sound.
+
+Make sure to clear the context often, usually after each phase of the plan has been completed or when you are approaching the limit. If you have been correcting the agent or providing valuable feedback, remember to run `/reflect` to update the documentation and the agent's understanding of the project. Finally, run `/consolidate` every now and then to ensure the documentation is consistent and up-to-date.
+
+## Use case: KB Sport app
+
+Starting from the [previous post](/blog/computer-vision-web/) in which we studied how to run computer vision models in the browser, we will now explore how to use this methodology to complete our KB sports app.
+
+We will use a layered architecture to separate concerns:
+
+```bash
+kb-sports-app/src/
+├── application/
+├── domain/
+├── infrastructure/
+├── presentation/
+└── main.tsx
+```
+
+- The `application` layer will contain the use cases and services to manage the workout.
+- The `domain` layer will contain the business entities such as the Workout and the service to detect repetitions.
+- The `infrastructure` layer will contain abstractions to interact with browser APIs and the computer vision models.
+- The `presentation` layer will contain the UI code written in Preact.
+
+Our starting point is a project that renders a canvas over a video and we already have implemented the adapters to use computer vision models in the browser. We will now use the Ask/Plan/Act methodology to implement the workout feature.
+
+### Ask
+
+During our first interaction I start by providing the AI agent with high-level project documentation to set the context:
+
+**Me:** /ask
+
+**Claude**: What feature or functionality are you looking to build or improve in your kettlebell workout tracking application?
+
+**Me:** Let's start with a basic workout feature. We want a button to start/stop the workout. It must appear floating at the center bottom of the screen with a glass-like effect. When clicking "Start," its label will change to "Stop," we will request camera access, and once the video is flowing, we will start analyzing poses and rendering them to the canvas. When clicking "Stop," we will stop the camera and clear the canvas.
+
+Claude then asks all the follow-up questions to clarify the requirements, after two rounds of this, we have a clear understanding of the user stories and acceptance criteria, which cover four main user stories and its edge cases.
+
+### Plan
+
+**Me:** /plan
+
+**Claude**: Based on the requirements and existing architecture, I can see we need to build a comprehensive workout control system. Let me discuss the implementation approach with you.
+
+Claude then reads the requirements and existing code, and proposes different architectural approaches, discussing the pros and cons of each. After a few iterations, we agree on a plan that follows the layered architecture we defined earlier, breaking down the implementation into phases and components.
+
+### Act
+
+I spent 40 minutes discussing the requirements and plan with Claude, iterating on the design and ensuring we had a solid foundation before moving to implementation. This is crucial to avoid misunderstandings and rework later. I have tried many different approaches to working with AI agents and I would rather build something right from the beginning than keep walking in loops for countless hours. Slow is smooth, smooth is fast.
+
+Once we had the plan, I let Claude take over the implementation using TDD. I run the `/act` command and it starts implementing one component at a time, writing tests for each one.
+
+**Claude**: I've completed the StopWorkoutUseCase component. All tests are passing. Should I proceed to the next component?
+
+**Me:** When clearing the canvas use the renderer adapter. Don't do it manually!
+
+**Claude**: _refactoring noises_.
+
+**Me:** Commit and keep going.
+
+It took about four hours to complete the implementation, including 100% coverage for the code written, the whole architecture setup and the project documentation.
+
+Checkout the code and all generated artifacts in the [KB Sport app repository](https://github.com/isidrok/kb-sport-app/tree/main/backlog/.archive)
+
+### Adding another feature
+
+Once the base workout feature was implemented, we can easily add more features using the same Ask/Plan/Act methodology.
+
+We used this method to add a feature to track repetitions and display a counter on the screen, which required us to carefully explain what a repetition is and how to detect it:
+
+**Me:** We want to automatically count repetitions of overhead lifts such as jerk or snatch. We will use the existing pose detection system to detect when the wrist has gone over the nose. We need to be very careful to not count double reps, lets use a state machine:
+down for 300ms + up for 300ms = repetition.
+Also reps can be made with left, right or both arms (always count as one) It is CRITICAL, that we first check for both arms and then for individual, to avoid double counting, and it will probably be good to have some kind of debounce. We need 100% accuracy.
+
+Implementing this feature took 25 minutes of careful discussion and planning, followed by another 1:20 hours of implementation using the same Ask/Plan/Act methodology. The AI agent was able to understand the requirements and implement the feature with 100% accuracy, passing all tests while I was playing fetch with Prim, reviewing code every couple of minutes.
+
+<Image src={prim} alt="Prim playing with an eggplant" />
+
+## Conclusion
+
+The Ask/Plan/Act methodology transforms AI coding from chaotic prompting into structured collaboration. By focusing on requirements gathering, technical planning, and TDD, we leverage AI's strengths while systematically addressing its weaknesses—memory loss, assumption-making, and lack of focus.
+
+This approach enables building complex applications like the KB Sport app with confidence. We maintain a solid foundation and clear understanding of what we're building and how. While it may seem slow initially, it pays dividends by eliminating rework and misunderstandings that plague typical AI collaborations.
+
+For smaller tasks you do not need to use this methodology, just treat the AI agent as a pair programming partner and consciously apply the same principles: ask questions, clarify requirements, and review code carefully.
+
+This methodology works best for application logic and behavior. Pure UI components remain challenging—visual design is hard to describe with natural language alone. For UI work, manual guidance and tools like Playwright MCP are the way to go.
+
+The goal isn't perfect AI autonomy, but rather productive human-AI collaboration that consistently delivers quality software.
+
+The KB Sport app built using this methodology is available at [https://github.com/isidrok/kb-sports-app](https://github.com/isidrok/kb-sport-app). Try it out at [https://isidrok.github.io/kb-sport-app/](https://isidrok.github.io/kb-sport-app/).
