@@ -12,7 +12,6 @@ const { isArticle = false } = Astro.props;
       <nav>
         <a href="/" class="logo">~/isidrok</a>
         <div class="social">
-          <a href="/about/">About</a>
           <a
             href="https://linkedin.com/in/itorregrosa"
             target="_blank"
@@ -62,7 +61,7 @@ const { isArticle = false } = Astro.props;
     progressBar.style.width = `${progressValue}%`;
     progressBar.setAttribute(
       "aria-valuenow",
-      Math.round(progressValue).toString()
+      Math.round(progressValue).toString(),
     );
   }
 
