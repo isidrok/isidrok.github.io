@@ -1,0 +1,136 @@
+---
+title: "Running LLMs Locally"
+description: "Comprehensive guide on how to run large language models on your own machine and use them with OpenAI and Langchain SDKs"
+date: "2026-01-30"
+slug: "local-llms"
+repository: "https://github.com/isidrok/local-llm"
+---
+
+I have been playing around with running LLMs locally for prototyping and trying things out. It is something apparently simple but in reality has some nuance.
+
+## Table of Contents
+
+## Picking a model runner
+
+During my research, I found out that there are many options to run LLMs locally, but the most popular ones are Ollama and Docker Model Runner. I noticed that both of them use the same underlying engine, llama.cpp, so I decided to give it a try. I found it equally easy to use and provides great flexibility. All options are great so have at it and pick the one you like the most.
+
+### Ollama
+
+One of the most popular model runners is [Ollama](https://ollama.com/). You can run it directly in your device or through a docker container.
+
+If using Docker, keep in mind it does not support GPU acceleration on MacOS, so you will be limited to CPU performance which won't be enough. **Use the native version if you want to run it on MacOS.**
+
+```bash
+# Start the Ollama server
+ollama serve
+# Pull the model you want to use
+ollama pull gpt-oss:20b
+```
+
+Model will be available at `http://localhost:11434/v1` with a default context size of 4k tokens. You can change it by following the [instructions in the documentation](https://docs.ollama.com/faq#how-can-i-specify-the-context-window-size).
+
+### Docker Model
+
+Another option is using [Docker Model Runner](https://docs.docker.com/ai/model-runner/) which comes with latest versions of Docker desktop. Since models run in your machine instead of containers, there is no problem using it on MacOS with GPU acceleration.
+
+```bash
+# Enable TCP support for model runner
+docker desktop enable model-runner --tcp
+# Pull the model you want to use
+docker model pull gpt-oss
+```
+
+Access the model at `http://localhost:12434/engines/llama.cpp/v1`. As with Ollama, you can change the default context size of 4k tokens by following the [instructions in the documentation](https://docs.docker.com/ai/model-runner/#context-size).
+
+### Llama.cpp
+
+Both Ollama and Docker come with their own model catalog but you can also run any model compatible with [llama.cpp](https://github.com/ggml-org/llama.cpp). Llama.cpp supports models in GGUF format, which can be found in [Hugging Face](https://huggingface.co/models?filter=gguf).
+
+```bash
+llama-server -hf unsloth/gpt-oss-20b-GGUF:Q4_K_XL -c 32768
+```
+
+We can specify the context size with the `-c` flag, in this case we are using 32k tokens. The model will be available at `http://localhost:8080/v1`.
+
+## Testing the model
+
+Once you have the model running, you can test it with a simple curl command. Make sure to specify the correct model name in the request body, in this case `unsloth/gpt-oss-20b-GGUF:Q4_K_XL` for the model we are running with llama.cpp.
+
+```bash
+curl -N http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "unsloth/gpt-oss-20b-GGUF:Q4_K_XL",
+    "messages": [
+      {"role": "user", "content": "Write a short poem about programming"}
+    ],
+    "stream": false
+  }'
+```
+
+## Choosing the right model
+
+When picking a model, you will be forced to choose between performance and quality. The more powerful the model, the better the results but also the more resources it will require. The most important factor is your available RAM and the model size.
+
+The size of the model is determined by **parameters** and **quantization**.
+
+- **Parameters**: The model's "knowledge size". More parameters = more knowledge, better reasoning, stronger capabilities.
+- **Quantization**: Compression level (bits per parameter). Lower bits = smaller model size, but also lower quality.
+
+For example the previous model we used, `unsloth/gpt-oss-20b-GGUF:Q4_K_XL`, has 20 billion parameters and is quantized to 4 bits. This means that the model size will be around 10GB. It is also using a special quantization method called "K-Quantization" which provides better performance at around the same size than traditional quantization methods.
+
+You will also need to consider the context size.
+
+In my Macbook M4 Pro with 24GB of RAM, I can run models up to 20B parameters with 4-bit quantization and a context size of 32k tokens without any problem.
+
+## Using the model with OpenAI and Langchain SDKs
+
+Since those local model runners provide an OpenAI compatible API, you can use them with the [OpenAI Agents SDK](https://openai.github.io/openai-agents-js/) and any library built to communicate with OpenAI-compatible APIs such as [Langchain](https://docs.langchain.com/oss/javascript/langchain/overview).
+You can find examples in the [repository](https://github.com/isidrok/local-llm) but here are some snippets to get you started.
+
+### OpenAI Agents SDK
+
+```ts
+import { Agent, OpenAIChatCompletionsModel } from "@openai/agents";
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "http://localhost:8080/v1",
+  apiKey: "not needed",
+});
+
+const agent = new Agent({
+  name: "Smith",
+  instructions: "You are a really helpful assistant.",
+  model: new OpenAIChatCompletionsModel(
+    client,
+    "unsloth/gpt-oss-20b-GGUF:Q4_K_XL",
+  ),
+});
+```
+
+### Langchain
+
+```ts
+import { createAgent } from "langchain";
+import { ChatOpenAI } from "@langchain/openai";
+
+const model = new ChatOpenAI({
+  configuration: {
+    baseURL: "http://localhost:8080/v1",
+  },
+  modelName: "unsloth/gpt-oss-20b-GGUF:Q4_K_XL",
+  apiKey: "not needed",
+});
+
+const agent = createAgent({
+  model,
+});
+```
+
+### Key takeaways
+
+- Running LLMs locally is a great way to prototype and try things out without worrying about costs.
+- There are many options to run LLMs locally, and it is quite easy to set up.
+- The most important factor when picking a model is the size of your RAM and the model size, which is determined by the number of parameters and the quantization level.
+- There are plenty of open models that work reasonably well, but the most powerful ones are not remotely close to being able to run in consumer hardware. For now it's much cheaper to pay a monthly subscription for Claude or similar.
