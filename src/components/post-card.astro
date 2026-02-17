@@ -4,13 +4,20 @@ interface Props {
   description: string;
   date: Date;
   url: string;
+  tags?: string[];
 }
 
-const { title, description, date, url } = Astro.props;
+const { title, description, date, url, tags } = Astro.props;
 ---
 
 <article>
   <header>
+    <h3>
+      <a href={url}>{title}</a>
+    </h3>
+  </header>
+  <p>{description}</p>
+  <div class="meta">
     <time datetime={date.toISOString()}>
       {
         new Intl.DateTimeFormat("en-US", {
@@ -20,14 +27,36 @@ const { title, description, date, url } = Astro.props;
         }).format(date)
       }
     </time>
-    <h3>
-      <a href={url}>{title}</a>
-    </h3>
-  </header>
-  <p>{description}</p>
+    {
+      tags && (
+        <ul class="tags" role="list">
+          {tags.map((tag) => (
+            <li>#{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
 </article>
 
 <style lang="scss">
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--color-fg-secondary);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0;
+  }
+
   h3 {
     font-size: 1.25rem;
     margin-block: 0.5rem;
