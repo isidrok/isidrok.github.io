@@ -7,8 +7,7 @@ import Separator from "@components/separator.astro";
 const posts = await getCollection("blog");
 const latestPosts = posts
   .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0, 5);
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
 <Layout
@@ -22,7 +21,7 @@ const latestPosts = posts
       <h1>Hi! I’m Isidro Torregrosa</h1>
       <p class="description">
         Software Engineer focused on TypeScript, Node.js, Web Development, and
-        lately AI and LLMs.
+        AI.
       </p>
       <Separator />
     </header>
