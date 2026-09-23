@@ -1,0 +1,51 @@
+---
+title: "AI Coding Revisited"
+date: 2026-09-24
+description: "A revisit of my AI coding workflow and how it evolved from last year's post"
+slug: "ai-coding-revisited"
+tags: ["ai", "productivity"]
+draft: false
+---
+
+One year ago, I wrote a post about a heavily structured AI coding workflow I had developed. It was a mix of what we now call spec-driven development and TDD.
+
+With the improvement of LLMs and new cost models (i.e. it's no longer free), I've moved to a simpler workflow that's faster, equally iterative, and keeps me closer to the code.
+
+## 1. Set the Context
+
+I usually start a project working with the AI to document three things in the `docs` folder:
+
+1. **The business problem** — A general description of the problem we're trying to solve and the most relevant use cases.
+
+2. **The high-level design** — The cloud components involved and how data flows between them.
+
+3. **The low-level design** — The entities, code architecture, and boundaries between components.
+
+I'll usually include Mermaid diagrams when they're useful. This documentation helps everyone and makes writing RFCs and CDRs a breeze.
+
+Just remember to keep the docs up to date, especially when making major changes. Its so easy, just ask the AI!
+
+The business problem and high-level design are highly specific to each project. For the low-level design, however, I usually end up with some flavor of Clean Architecture. Defining the constraints and boundaries between layers makes the AI's work much more predictable, and Clean or Hexagonal Architecture gives you a good default for this. Don't over-engineer it, though, or the AI will get confused. You don't need to specify every entity attribute and method. You get the idea.
+
+I use `agents.md` files to document these rules and constraints, and reference the relevant documentation when needed.
+
+For the first few features, I describe in detail what I want and how I want it done. I'd rather spend time upfront than ask for changes later. This saves time, tokens, and frustration.
+
+After a few features, there's usually enough context for the AI to understand the project, and I can be much more vague in my requests.
+
+Simply doing this sets the project up for success. I've found that I don't need skills or a more structured approach once this foundation is in place.
+
+## 2. Stay Close to the Code
+
+Now for the day to day work I have three simple rules:
+
+1. **You are responsible for the code you push.** "Claude did it" is not a valid excuse. If you don't understand the code you're about to push, just ask the AI.
+
+2. **Don't use expensive models.** I haven't found a task I can't do with Sonnet 5 at medium thinking effort. It is not only cheaper but much faster. Just put a little effort when prompting. One day of Opus can screw up your budget for the whole month.
+
+3. **Work in chunks and review the output before committing.** I usually have Claude Desktop on one screen and my IDE on the other. I'll ask for something, review it, and ask for changes if needed before committing.
+   This makes it easy to iterate and, more importantly, keeps me in touch with what I'm doing. Reviewing a PR full of code you're seeing for the first time doesn't help you understand the code in the same way, and you won't be able to drive decisions about the codebase as effectively.
+
+The biggest change from last year is that I've stopped trying to design the perfect workflow to let the AI code autonomously. I still want to be in the driver's seat. Some people might disagree with that but isn't the point of engineering to stay in control of the system you're building?
+
+Having AI write all the code doesn't mean you've suddenly become a project manager. Understanding what you are doing doesn't mean you aren't using AI effectively.
