@@ -3,12 +3,10 @@ import { glob } from "astro/loaders";
 
 const TAG = z.enum([
   "node.js",
-  "javascript",
-  "streams",
-  "ai",
-  "llm",
-  "computer-vision",
   "web",
+  "mcp",
+  "javascript",
+  "ai",
   "productivity",
   "performance",
 ]);

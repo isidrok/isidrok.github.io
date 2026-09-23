@@ -3,7 +3,7 @@ title: "Computer Vision in the browser"
 description: "Deep dive into how to run computer vision models in the browser using TensorFlow.js and YOLOv8 pose estimation model."
 date: "2025-06-07"
 slug: "computer-vision-web"
-tags: ["javascript", "ai", "computer-vision", "web"]
+tags: ["ai", "web"]
 repository: "https://github.com/isidrok/computer-vision-web"
 liveDemo: "https://isidrok.github.io/computer-vision-web/"
 ---
@@ -259,13 +259,13 @@ function getBestPrediction(predictions: Tensor3D): Promise<{
         slice(x2, [0, bestPredictionIndex, 0], [1, 1, 1]),
         slice(y2, [0, bestPredictionIndex, 0], [1, 1, 1]),
       ],
-      2
-    )
+      2,
+    ),
   );
 
   // Extract the best keypoints (51 values: 17 keypoints × 3 values each)
   const bestKeypointsTensor = squeeze(
-    slice(allKeypoints, [0, bestPredictionIndex, 0], [1, 1, -1])
+    slice(allKeypoints, [0, bestPredictionIndex, 0], [1, 1, -1]),
   );
 
   // Convert keypoints tensor to array and group into [x, y, confidence] triplets
@@ -282,7 +282,7 @@ function getBestPrediction(predictions: Tensor3D): Promise<{
     number,
     number,
     number,
-    number
+    number,
   ];
 
   return {
@@ -391,7 +391,7 @@ To do so, we will need to calculate which is the largest dimension of the image 
 ```ts
 function processImageWithLetterboxing(
   image: HTMLImageElement,
-  model: GraphModel
+  model: GraphModel,
 ) {
   // Get model's expected input dimensions
   const modelInputShape = model.inputs[0].shape!;
@@ -421,7 +421,7 @@ function processImageWithLetterboxing(
   console.log(`Target square: ${targetSquareSize}x${targetSquareSize}`);
   // Target square: 405x405
   console.log(
-    `Padding: top=${topPadding}, bottom=${bottomPadding}, left=${leftPadding}, right=${rightPadding}`
+    `Padding: top=${topPadding}, bottom=${bottomPadding}, left=${leftPadding}, right=${rightPadding}`,
   );
   // Padding: top=0, bottom=0, left=77, right=78
 
@@ -469,7 +469,7 @@ We need to modify the `processImageWithLetterboxing` function to return the vert
 ```ts
 function processImageWithLetterboxing(
   image: HTMLImageElement,
-  model: GraphModel
+  model: GraphModel,
 ) {
   // ... previous code
 
@@ -479,7 +479,7 @@ function processImageWithLetterboxing(
   const yOffset = topPadding; // Y displacement caused by letterboxing
 
   console.log(
-    `Transformation - scale: ${scale}, xOffset: ${xOffset}, yOffset: ${yOffset}`
+    `Transformation - scale: ${scale}, xOffset: ${xOffset}, yOffset: ${yOffset}`,
   );
   // Transformation - scale: 0.6328125, xOffset: 77, yOffset: 0
 
@@ -503,7 +503,7 @@ Finally, we will create a function `scalePrediction` that will scale the predict
 function transformCoordinate(
   coord: number,
   scale: number,
-  offset: number
+  offset: number,
 ): number {
   // Transform coordinates from model space back to original image space
   return coord * scale - offset;
@@ -519,7 +519,7 @@ function scalePrediction(
     scale: number;
     xOffset: number;
     yOffset: number;
-  }
+  },
 ) {
   const { scale, xOffset, yOffset } = transformParams;
 
@@ -538,7 +538,7 @@ function scalePrediction(
       transformCoordinate(x, scale, xOffset),
       transformCoordinate(y, scale, yOffset),
       confidence,
-    ]
+    ],
   );
 
   return {
@@ -553,7 +553,7 @@ async function main() {
 
   const { processedImage, transformParams } = processImageWithLetterboxing(
     image,
-    model
+    model,
   );
   const predictions = model.predict(processedImage) as Tensor3D;
   const bestPrediction = getBestPrediction(predictions);
@@ -603,7 +603,7 @@ async function main() {
   tidy(() => {
     const { processedImage, transformParams } = processImageWithLetterboxing(
       image,
-      model
+      model,
     );
     const predictions = model.predict(processedImage) as Tensor3D;
     const bestPrediction = getBestPrediction(predictions);
@@ -705,13 +705,13 @@ We will also refactor our previous code to create a function `processImage` that
 function processImage(
   canvas: HTMLCanvasElement,
   source: HTMLImageElement | HTMLVideoElement,
-  model: GraphModel
+  model: GraphModel,
 ): void {
   tidy(() => {
     // Process image with letterboxing to maintain aspect ratio
     const { processedImage, transformParams } = processImageWithLetterboxing(
       source,
-      model
+      model,
     );
 
     // Run model inference
