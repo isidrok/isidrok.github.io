@@ -46,7 +46,7 @@ const canonicalURL = new URL(`/blog/${post.id}`, Astro.site).href;
           post.data.tags && (
             <ul class="tags" role="list">
               {post.data.tags.map((tag) => (
-                <li>#{tag}</li>
+                <li><a href={`/tag/${tag}/`}>#{tag}</a></li>
               ))}
             </ul>
           )
@@ -122,6 +122,13 @@ const canonicalURL = new URL(`/blog/${post.id}`, Astro.site).href;
 
       li {
         list-style: none;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.2em;
       }
     }
 

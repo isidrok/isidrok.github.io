@@ -25,7 +25,7 @@ const { title, description, date, url, tags } = Astro.props;
       tags && (
         <ul class="tags" role="list">
           {tags.map((tag) => (
-            <li>#{tag}</li>
+            <li><a href={`/tag/${tag}/`}>#{tag}</a></li>
           ))}
         </ul>
       )
@@ -57,6 +57,13 @@ const { title, description, date, url, tags } = Astro.props;
     flex-wrap: wrap;
     gap: 0.5rem;
     padding: 0;
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 0.2em;
+    }
   }
 
   h3 {
