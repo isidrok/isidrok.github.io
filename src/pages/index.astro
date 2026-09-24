@@ -4,7 +4,7 @@ import { getCollection } from "astro:content";
 import PostList from "@components/post-list.astro";
 
 const PAGE_SIZE = 5;
-const SHOWN_TAGS = ["ai", "node.js", "web", "dev"];
+const SHOWN_TAGS = ["agents", "backend", "web", "ai", "dev"];
 
 const posts = await getCollection("blog");
 const allPosts = posts

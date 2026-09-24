@@ -3,11 +3,11 @@ import Layout from "@layout/layout.astro";
 import { getCollection } from "astro:content";
 import PostList from "@components/post-list.astro";
 
-const SHOWN_TAGS = ["ai", "node.js", "web", "dev"];
+const SHOWN_TAGS = ["agents", "backend", "web", "ai", "dev"];
 const PAGE_SIZE = 5;
 
 export async function getStaticPaths({ paginate }: { paginate: Function }) {
-  const shownTags = ["ai", "node.js", "web", "dev"];
+  const shownTags = ["agents", "backend", "web", "ai", "dev"];
   const posts = await getCollection("blog");
   const allPosts = posts
     .filter((p) => !p.data.draft)
