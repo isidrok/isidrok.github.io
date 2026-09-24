@@ -1,18 +1,19 @@
 ---
 title: "Tip: MCP File Upload"
 date: 2026-09-23
-description: "Quick tip on uploading files from an agent while MCP protocol doesn't support it natively by using pre-signed URLs"
+description: "Quick tip on uploading files from an agent while MCP protocol doesn't support it natively by using pre-signed URLs."
 slug: "mcp-file-upload"
-tags: ["ai", "mcp"]
+tags: ["ai"]
 draft: false
 ---
 
 import { Image } from "astro:assets";
 import diagram from "./assets/diagram.png";
 
-If you have been working with Claude and building MCP's, you might have found use cases in which you need to upload files from an agent to your server. Unfortunately, the MCP protocol doesn't support file uploads natively yet, [there is a charter](https://modelcontextprotocol.io/community/working-groups/file-uploads) dedicated to solve this but in the mean time you can achieve it by using a simple workaround.
+If you have been working with Claude and building MCP servers, you might have found use cases in which you need to upload files from an agent to your server.
+Unfortunately, the MCP doesn't support file uploads natively yet, [there is a charter](https://modelcontextprotocol.io/community/working-groups/file-uploads) dedicated to solve this but in the mean time you can achieve it by using a simple workaround: pre-signed URLs.
 
-Whenever you upload a file to Claude it doesn't stay in the conversation context, instead Claude uploads it to a sandbox, which acts as a temporary storage and from which Claude can execute commands and execute code. We can leverage this by creating a simple tool in our MCP that returns a pre-signed upload URL: a short lived URL that allows to upload a file to a storage bucket without requiring authentication.
+Whenever you upload a file to Claude it doesn't stay in the conversation context, instead Claude uploads it to a sandbox, which acts as a temporary storage and from which Claude can execute commands and code. We can leverage this by creating a simple tool in our MCP that returns a pre-signed upload URL: a short lived URL that allows to upload a file to a storage bucket without requiring authentication.
 
 <Image src={diagram} alt="Flow diagram" />
 

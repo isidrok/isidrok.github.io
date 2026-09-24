@@ -3,25 +3,29 @@ import Layout from "@layout/layout.astro";
 import { getCollection } from "astro:content";
 import PostList from "@components/post-list.astro";
 
-const PAGE_SIZE = 5;
 const SHOWN_TAGS = ["ai", "node.js", "web", "dev"];
+const PAGE_SIZE = 5;
 
-const posts = await getCollection("blog");
-const allPosts = posts
-  .filter((p) => !p.data.draft)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+export async function getStaticPaths({ paginate }: { paginate: Function }) {
+  const shownTags = ["ai", "node.js", "web", "dev"];
+  const posts = await getCollection("blog");
+  const allPosts = posts
+    .filter((p) => !p.data.draft)
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
-const page = {
-  data: allPosts.slice(0, PAGE_SIZE),
-  currentPage: 1,
-  lastPage: Math.ceil(allPosts.length / PAGE_SIZE),
-  url: { prev: undefined, next: allPosts.length > PAGE_SIZE ? "/posts/2/" : undefined },
-};
+  return shownTags.flatMap((tag) => {
+    const tagPosts = allPosts.filter((p) => p.data.tags?.includes(tag as any));
+    return paginate(tagPosts, { params: { tag }, pageSize: 5 });
+  });
+}
+
+const { page } = Astro.props;
+const { tag } = Astro.params;
 ---
 
 <Layout
-  title="~/isidrok"
-  description="Isidro's personal blog about web development, software engineering, and technology"
+  title={`#${tag} · ~/isidrok`}
+  description={`Posts tagged #${tag} on Isidro's blog`}
   type="website"
   canonicalURL={Astro.url.href}
 >
@@ -32,7 +36,7 @@ const page = {
         Software Engineer focused on TypeScript, Node.js, Web Development and AI.
       </p>
     </header>
-    <PostList page={page} allTags={SHOWN_TAGS} />
+    <PostList page={page} allTags={SHOWN_TAGS} activeTag={tag} />
   </div>
 </Layout>
 

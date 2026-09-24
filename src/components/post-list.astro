@@ -1,0 +1,127 @@
+---
+import PostCard from "./post-card.astro";
+import type { CollectionEntry } from "astro:content";
+import type { GetStaticPathsOptions, Page } from "astro";
+
+interface Props {
+  page: Page<CollectionEntry<"blog">>;
+  allTags: string[];
+  activeTag?: string;
+}
+
+const { page, allTags, activeTag } = Astro.props;
+
+function pageUrl(tag: string | undefined, n: number) {
+  if (tag) return n === 1 ? `/tag/${tag}/` : `/tag/${tag}/${n}/`;
+  return n === 1 ? `/` : `/posts/${n}/`;
+}
+---
+
+<div class="filters">
+  <a href="/" class:list={["tag-btn", { active: !activeTag }]}>All</a>
+  {allTags.map((tag) => (
+    <a href={`/tag/${tag}/`} class:list={["tag-btn", { active: tag === activeTag }]}>#{tag}</a>
+  ))}
+</div>
+
+<ol role="list">
+  {page.data.map((post) => (
+    <li>
+      <PostCard
+        title={post.data.title}
+        description={post.data.description}
+        date={post.data.date}
+        url={`/blog/${post.id}/`}
+        tags={post.data.tags}
+      />
+    </li>
+  ))}
+</ol>
+
+{page.lastPage > 1 && (
+  <nav class="pagination" aria-label="Pages">
+    {page.currentPage > 1 && (
+      <a href={pageUrl(activeTag, page.currentPage - 1)} class="page-btn">&lsaquo; Prev</a>
+    )}
+    {Array.from({ length: page.lastPage }, (_, i) => i + 1).map((n) => (
+      <a
+        href={pageUrl(activeTag, n)}
+        class:list={["page-btn", { active: n === page.currentPage }]}
+        aria-current={n === page.currentPage ? "page" : undefined}
+      >
+        {n}
+      </a>
+    ))}
+    {page.currentPage < page.lastPage && (
+      <a href={pageUrl(activeTag, page.currentPage + 1)} class="page-btn">Next &rsaquo;</a>
+    )}
+  </nav>
+)}
+
+<style lang="scss">
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tag-btn {
+    border: 1px solid var(--color-border);
+    color: var(--color-fg-tertiary);
+    font-family: ui-monospace, monospace;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    text-decoration: none;
+
+    &:hover,
+    &.active {
+      border-color: var(--color-fg-primary);
+      color: var(--color-fg-primary);
+    }
+
+    &:visited {
+      color: var(--color-fg-tertiary);
+    }
+  }
+
+  ol {
+    padding: 0;
+    margin: 0;
+
+    li {
+      list-style: none;
+    }
+  }
+
+  .pagination {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .page-btn {
+    border: 1px solid var(--color-border);
+    color: var(--color-fg-tertiary);
+    font-family: ui-monospace, monospace;
+    font-size: 0.8rem;
+    min-width: 2rem;
+    height: 2rem;
+    padding-inline: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+
+    &:hover,
+    &.active {
+      border-color: var(--color-fg-primary);
+      color: var(--color-fg-primary);
+      font-weight: 600;
+    }
+
+    &:visited {
+      color: var(--color-fg-tertiary);
+    }
+  }
+</style>

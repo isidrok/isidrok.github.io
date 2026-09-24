@@ -11,6 +11,16 @@ const { title, description, canonicalURL, type } = Astro.props;
 const ogImage = new URL("/og-image.png", Astro.url.origin).href;
 ---
 
+<!-- Theme: apply before paint to avoid flash -->
+<script is:inline>
+  (function () {
+    const stored = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = stored ?? (prefersDark ? "dark" : "light");
+    document.documentElement.dataset.theme = theme;
+  })();
+</script>
+
 <!-- Essential Meta Tags -->
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />

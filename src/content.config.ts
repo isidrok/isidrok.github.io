@@ -1,15 +1,7 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 
-const TAG = z.enum([
-  "node.js",
-  "web",
-  "mcp",
-  "javascript",
-  "ai",
-  "productivity",
-  "performance",
-]);
+const TAG = z.enum(["node.js", "web", "ai", "data", "dev"]);
 
 const blog = defineCollection({
   loader: glob({ pattern: "*/*.{md,mdx}", base: "./src/posts" }),

@@ -3,24 +3,24 @@ import Layout from "@layout/layout.astro";
 import { getCollection } from "astro:content";
 import PostList from "@components/post-list.astro";
 
-const PAGE_SIZE = 5;
 const SHOWN_TAGS = ["ai", "node.js", "web", "dev"];
+const PAGE_SIZE = 5;
 
-const posts = await getCollection("blog");
-const allPosts = posts
-  .filter((p) => !p.data.draft)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+export async function getStaticPaths({ paginate }: { paginate: Function }) {
+  const pageSize = 5;
+  const posts = await getCollection("blog");
+  const allPosts = posts
+    .filter((p) => !p.data.draft)
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+  // page 1 is handled by index.astro, start from page 2
+  return paginate(allPosts, { pageSize }).slice(1);
+}
 
-const page = {
-  data: allPosts.slice(0, PAGE_SIZE),
-  currentPage: 1,
-  lastPage: Math.ceil(allPosts.length / PAGE_SIZE),
-  url: { prev: undefined, next: allPosts.length > PAGE_SIZE ? "/posts/2/" : undefined },
-};
+const { page } = Astro.props;
 ---
 
 <Layout
-  title="~/isidrok"
+  title={`Posts — page ${page.currentPage} · ~/isidrok`}
   description="Isidro's personal blog about web development, software engineering, and technology"
   type="website"
   canonicalURL={Astro.url.href}
