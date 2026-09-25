@@ -156,7 +156,7 @@ bitmap.to_pil().save("page1.png", "PNG")
 ## Giving our agent vision capabilities
 
 To analyze images or content that isn't easily readable as text, we can instruct our agent to save images to the sandbox disk, and call a tool that will put it in the conversation context encoded in base64.
-This works because multimodal models are capable of interpreting different content types at the same time.
+That's exactly what we are doing in the last part of the skill above. This works because multimodal models are capable of interpreting different content types at the same time.
 
 You could also implement an OCR tool in the same fashion and explain your agent the trade-offs. Using the vision capabilities of the model is more accurate but consumes more tokens and should be used especially for images found inside the documents and charts, while OCR is cheaper and can be used as a fallback for scanned documents and the like.
 
@@ -221,7 +221,7 @@ export function createAgent(
 
 If we upload some crafted company sample files and invoke it with the following prompt:
 
-> Look at the files in the documents directory. Extract the regional revenue figures from the PDF and the total cost per department from the Headcount sheet in the Excel file.
+_Look at the files in the documents directory. Extract the regional revenue figures from the PDF and the total cost per department from the Headcount sheet in the Excel file._
 
 We will observe how the LLM uses the capabilities that we have made available to it to fulfill our request:
 
