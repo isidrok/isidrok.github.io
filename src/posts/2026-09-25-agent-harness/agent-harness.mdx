@@ -108,11 +108,54 @@ For PDFs, the best approach is to analyze each page independently, and treat tex
 The same strategy applies to workbooks: first peek at the structure, then use different libraries depending on the content.
 
 If you want a good reference implementation, ask Claude how it analyzes PDFs or spreadsheets, and have a peek at its own skills.
-You can ask your coding agent to create skills based on those but using the tools available in the sandbox.
+You can ask your coding agent to create skills based on those, but using the tools available in the sandbox.
+
+Here is a trimmed down version of a PDF skill. Notice how we just tell the LLM the available options so it can make the right call at runtime:
+
+````markdown
+---
+name: pdf
+description: Read and extract text, tables, and metadata from PDF files using the Python sandbox.
+allowed_tools:
+  - execute_code
+  - view_image
+---
+
+Use `execute_code` to process PDF files. All libraries below are pre-installed.
+
+## Extract text and tables
+
+```python
+import pdfplumber
+
+with pdfplumber.open("/path/to/file.pdf") as pdf:
+    for i, page in enumerate(pdf.pages):
+        text = page.extract_text()
+        if text:
+            print(f"--- Page {i + 1} ---")
+            print(text)
+        for table in page.extract_tables():
+            print(table)
+```
+
+## Render a page as an image to view it visually
+
+Use `pypdfium2` to render a page to PNG (no external dependencies), save it, then call `view_image` with that path.
+
+```python
+import pypdfium2 as pdfium
+
+pdf = pdfium.PdfDocument("/path/to/file.pdf")
+page = pdf[0]  # first page (0-indexed)
+bitmap = page.render(scale=2)  # scale=2 gives 144 dpi
+bitmap.to_pil().save("page1.png", "PNG")
+# Then call: view_image(path="page1.png")
+```
+````
 
 ## Giving our agent vision capabilities
 
-In order to analyze images or content that is not properly readable as text, we can instruct our agent to save images to the sandbox disk, and call a tool that will put it in the conversation context encoded in base 64.
+To analyze images or content that isn't easily readable as text, we can instruct our agent to save images to the sandbox disk, and call a tool that will put it in the conversation context encoded in base64.
 This works because multimodal models are capable of interpreting different content types at the same time.
 
 You could also implement an OCR tool in the same fashion and explain your agent the trade-offs. Using the vision capabilities of the model is more accurate but consumes more tokens and should be used especially for images found inside the documents and charts, while OCR is cheaper and can be used as a fallback for scanned documents and the like.
@@ -232,6 +275,6 @@ Remember, an agent is just an abstraction. You can have interactive agents with 
 
 Before optimizing for speed or cost, you need to understand the two constraints that can break your agent entirely: the model's maximum context window and its maximum output tokens per message. If the context on the last turn is close to the limit, you may need context summarization or sub-agents to offload the conversation. If the agent's output is consistently hitting the output token ceiling, consider whether it can be made more concise — or whether you need chunking at the application level. Err on the side of small, focused agents that own a specific part of your workflow rather than a few agents that try to do everything.
 
-Once the hard limits are under control, the main cost driver to watch is total output tokens. Input tokens matter too, but the real lever is caching: when you cache the system prompt and tool definitions, repeated runs share that cost across calls rather than paying it fresh every time. This is inference-level caching, not a simple input/output ratio — keep an eye on cache read and write counts to confirm it's actually working.
+Once the hard limits are under control, the main cost driver to watch is total output tokens. Input tokens matter too, but the real lever is caching: when you cache the system prompt and tool definitions, repeated runs share that cost across calls rather than paying it fresh every time. In a multi-turn conversation of _T_ turns, message number _N_ would be charged _T - N + 1_ times if not using caching (the first message in a 10-turn conversation goes to the LLM 10 times). This is inference-level caching, not a simple input/output ratio — keep an eye on cache read and write counts to confirm it's actually working. In Strands, we enable it for all messages by adding `cacheConfig: { strategy: "auto" }` to our agent config, but cache points let you implement granular caching so you can treat static and dynamic parts of the prompt differently.
 
 Finally, store the full transcription of every run. That's the only way to understand what the agent is actually doing — and that understanding is what lets you improve its instructions, catch unnecessary steps or common errors, and tune it over time.
