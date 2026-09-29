@@ -277,4 +277,13 @@ Before optimizing for speed or cost, you need to understand the two constraints 
 
 Once the hard limits are under control, the main cost driver to watch is total output tokens. Input tokens matter too, but the real lever is caching: when you cache the system prompt and tool definitions, repeated runs share that cost across calls rather than paying it fresh every time. In a multi-turn conversation of _T_ turns, message number _N_ would be charged _T - N + 1_ times if not using caching (the first message in a 10-turn conversation goes to the LLM 10 times). This is inference-level caching, not a simple input/output ratio — keep an eye on cache read and write counts to confirm it's actually working. In Strands, we enable it for all messages by adding `cacheConfig: { strategy: "auto" }` to our agent config, but cache points let you implement granular caching so you can treat static and dynamic parts of the prompt differently.
 
+To avoid billing surprises, remember to set turn and time limits on every invocation:
+
+```ts
+await agent.invoke([{ text: prompt }], {
+  limits: { turns: 50 },
+  cancelSignal: AbortSignal.timeout(15 * 60 * 1000),
+});
+```
+
 Finally, store the full transcription of every run. That's the only way to understand what the agent is actually doing — and that understanding is what lets you improve its instructions, catch unnecessary steps or common errors, and tune it over time.
